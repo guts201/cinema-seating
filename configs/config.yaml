@@ -1,0 +1,22 @@
+listener:
+  tcp:
+    address: 0.0.0.0
+    port: 8080
+    secure: false
+
+logger:
+  pretty: true
+  level: DEBUG
+
+database:
+  auth_method: ${DATABASE_AUTH_METHOD}
+  host: ${DATABASE_HOST}
+  port: 3306
+  name: ${DATABASE_NAME}
+  username: ${DATABASE_USERNAME}
+  password: ${DATABASE_PASSWORD}
+
+redis:
+  enabled: true
+  address: ${REDIS_ADDRESS}
+  ttl: 3600
