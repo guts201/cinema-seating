@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package cinema;
+
+option go_package = "cinema/api;cinema";
+
+
+// ===== Messages =====
+message Movie {
+    int32 id = 1;
+    string title = 2;
+    int32 duration_minutes = 3;
+  }
+  
+  message Screening {
+    int32 id = 1;
+    int32 movie_id = 2;
+    string start_time = 3; // ISO8601 string
+    int32 rows = 4;
+    int32 columns = 5;
+    int32 min_distance = 6;
+  }
+  
+  message Seat {
+    int32 row = 1;
+    int32 column = 2;
+  }
+  
+  message SeatGroup {
+    repeated Seat seats = 1;
+  }
+  
+  message ReserveSeatsRequest {
+    int32 screening_id = 1;
+    SeatGroup group = 2;
+  }
+  
+  message ReserveSeatsResponse {
+    bool success = 1;
+    string message = 2;
+  }
+  
+  message CancelSeatsRequest {
+    int32 screening_id = 1;
+    SeatGroup group = 2;
+  }
+  
+  message CancelSeatsResponse {
+    bool success = 1;
+    string message = 2;
+  }
+  
+  message GetAvailableGroupsRequest {
+    int32 screening_id = 1;
+    int32 group_size = 2;
+  }
+  
+  message GetAvailableGroupsResponse {
+    repeated SeatGroup groups = 1;
+  }
+  
+  // ===== Service =====
+  service Cinema {
+    rpc GetAvailableGroups(GetAvailableGroupsRequest) returns (GetAvailableGroupsResponse);
+    rpc ReserveSeats(ReserveSeatsRequest) returns (ReserveSeatsResponse);
+    rpc CancelSeats(CancelSeatsRequest) returns (CancelSeatsResponse);
+  }
