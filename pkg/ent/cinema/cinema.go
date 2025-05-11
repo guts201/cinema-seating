@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -23,10 +24,28 @@ const (
 	FieldNumColumn = "num_column"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldAddress holds the string denoting the address field in the database.
-	FieldAddress = "address"
+	// FieldMinDistance holds the string denoting the min_distance field in the database.
+	FieldMinDistance = "min_distance"
+	// EdgeSeats holds the string denoting the seats edge name in mutations.
+	EdgeSeats = "seats"
+	// EdgeScreenings holds the string denoting the screenings edge name in mutations.
+	EdgeScreenings = "screenings"
 	// Table holds the table name of the cinema in the database.
 	Table = "cinemas"
+	// SeatsTable is the table that holds the seats relation/edge.
+	SeatsTable = "seats"
+	// SeatsInverseTable is the table name for the Seat entity.
+	// It exists in this package in order to avoid circular dependency with the "seat" package.
+	SeatsInverseTable = "seats"
+	// SeatsColumn is the table column denoting the seats relation/edge.
+	SeatsColumn = "cinema_seats"
+	// ScreeningsTable is the table that holds the screenings relation/edge.
+	ScreeningsTable = "screenings"
+	// ScreeningsInverseTable is the table name for the Screening entity.
+	// It exists in this package in order to avoid circular dependency with the "screening" package.
+	ScreeningsInverseTable = "screenings"
+	// ScreeningsColumn is the table column denoting the screenings relation/edge.
+	ScreeningsColumn = "cinema_screenings"
 )
 
 // Columns holds all SQL columns for cinema fields.
@@ -37,7 +56,7 @@ var Columns = []string{
 	FieldNumRow,
 	FieldNumColumn,
 	FieldName,
-	FieldAddress,
+	FieldMinDistance,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -58,13 +77,13 @@ var (
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
 	// NumRowValidator is a validator for the "num_row" field. It is called by the builders before save.
-	NumRowValidator func(int64) error
+	NumRowValidator func(uint32) error
 	// NumColumnValidator is a validator for the "num_column" field. It is called by the builders before save.
-	NumColumnValidator func(int64) error
+	NumColumnValidator func(uint32) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// AddressValidator is a validator for the "address" field. It is called by the builders before save.
-	AddressValidator func(string) error
+	// MinDistanceValidator is a validator for the "min_distance" field. It is called by the builders before save.
+	MinDistanceValidator func(uint32) error
 )
 
 // OrderOption defines the ordering options for the Cinema queries.
@@ -100,7 +119,49 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
-// ByAddress orders the results by the address field.
-func ByAddress(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldAddress, opts...).ToFunc()
+// ByMinDistance orders the results by the min_distance field.
+func ByMinDistance(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMinDistance, opts...).ToFunc()
+}
+
+// BySeatsCount orders the results by seats count.
+func BySeatsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeatsStep(), opts...)
+	}
+}
+
+// BySeats orders the results by seats terms.
+func BySeats(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeatsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByScreeningsCount orders the results by screenings count.
+func ByScreeningsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newScreeningsStep(), opts...)
+	}
+}
+
+// ByScreenings orders the results by screenings terms.
+func ByScreenings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newScreeningsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newSeatsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeatsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeatsTable, SeatsColumn),
+	)
+}
+func newScreeningsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ScreeningsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ScreeningsTable, ScreeningsColumn),
+	)
 }

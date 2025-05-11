@@ -3,7 +3,9 @@
 package ent
 
 import (
+	"cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/seat"
+	"cinema/pkg/ent/seatreservation"
 	"context"
 	"errors"
 	"fmt"
@@ -66,6 +68,40 @@ func (sc *SeatCreate) SetColumn(i int16) *SeatCreate {
 func (sc *SeatCreate) SetID(i int64) *SeatCreate {
 	sc.mutation.SetID(i)
 	return sc
+}
+
+// SetCinemaID sets the "cinema" edge to the Cinema entity by ID.
+func (sc *SeatCreate) SetCinemaID(id int64) *SeatCreate {
+	sc.mutation.SetCinemaID(id)
+	return sc
+}
+
+// SetNillableCinemaID sets the "cinema" edge to the Cinema entity by ID if the given value is not nil.
+func (sc *SeatCreate) SetNillableCinemaID(id *int64) *SeatCreate {
+	if id != nil {
+		sc = sc.SetCinemaID(*id)
+	}
+	return sc
+}
+
+// SetCinema sets the "cinema" edge to the Cinema entity.
+func (sc *SeatCreate) SetCinema(c *Cinema) *SeatCreate {
+	return sc.SetCinemaID(c.ID)
+}
+
+// AddSeatReservationIDs adds the "seat_reservations" edge to the SeatReservation entity by IDs.
+func (sc *SeatCreate) AddSeatReservationIDs(ids ...int64) *SeatCreate {
+	sc.mutation.AddSeatReservationIDs(ids...)
+	return sc
+}
+
+// AddSeatReservations adds the "seat_reservations" edges to the SeatReservation entity.
+func (sc *SeatCreate) AddSeatReservations(s ...*SeatReservation) *SeatCreate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return sc.AddSeatReservationIDs(ids...)
 }
 
 // Mutation returns the SeatMutation object of the builder.
@@ -185,6 +221,39 @@ func (sc *SeatCreate) createSpec() (*Seat, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Column(); ok {
 		_spec.SetField(seat.FieldColumn, field.TypeInt16, value)
 		_node.Column = value
+	}
+	if nodes := sc.mutation.CinemaIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seat.CinemaTable,
+			Columns: []string{seat.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.cinema_seats = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.SeatReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seat.SeatReservationsTable,
+			Columns: []string{seat.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

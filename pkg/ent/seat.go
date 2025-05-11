@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/seat"
 	"fmt"
 	"strings"
@@ -24,8 +25,43 @@ type Seat struct {
 	// Row holds the value of the "row" field.
 	Row int16 `json:"row,omitempty"`
 	// Column holds the value of the "column" field.
-	Column       int16 `json:"column,omitempty"`
+	Column int16 `json:"column,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SeatQuery when eager-loading is set.
+	Edges        SeatEdges `json:"edges"`
+	cinema_seats *int64
 	selectValues sql.SelectValues
+}
+
+// SeatEdges holds the relations/edges for other nodes in the graph.
+type SeatEdges struct {
+	// Cinema holds the value of the cinema edge.
+	Cinema *Cinema `json:"cinema,omitempty"`
+	// SeatReservations holds the value of the seat_reservations edge.
+	SeatReservations []*SeatReservation `json:"seat_reservations,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// CinemaOrErr returns the Cinema value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeatEdges) CinemaOrErr() (*Cinema, error) {
+	if e.Cinema != nil {
+		return e.Cinema, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: cinema.Label}
+	}
+	return nil, &NotLoadedError{edge: "cinema"}
+}
+
+// SeatReservationsOrErr returns the SeatReservations value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeatEdges) SeatReservationsOrErr() ([]*SeatReservation, error) {
+	if e.loadedTypes[1] {
+		return e.SeatReservations, nil
+	}
+	return nil, &NotLoadedError{edge: "seat_reservations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,6 +73,8 @@ func (*Seat) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case seat.FieldCreatedAt, seat.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
+		case seat.ForeignKeys[0]: // cinema_seats
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -82,6 +120,13 @@ func (s *Seat) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.Column = int16(value.Int64)
 			}
+		case seat.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field cinema_seats", value)
+			} else if value.Valid {
+				s.cinema_seats = new(int64)
+				*s.cinema_seats = int64(value.Int64)
+			}
 		default:
 			s.selectValues.Set(columns[i], values[i])
 		}
@@ -93,6 +138,16 @@ func (s *Seat) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (s *Seat) Value(name string) (ent.Value, error) {
 	return s.selectValues.Get(name)
+}
+
+// QueryCinema queries the "cinema" edge of the Seat entity.
+func (s *Seat) QueryCinema() *CinemaQuery {
+	return NewSeatClient(s.config).QueryCinema(s)
+}
+
+// QuerySeatReservations queries the "seat_reservations" edge of the Seat entity.
+func (s *Seat) QuerySeatReservations() *SeatReservationQuery {
+	return NewSeatClient(s.config).QuerySeatReservations(s)
 }
 
 // Update returns a builder for updating this Seat.

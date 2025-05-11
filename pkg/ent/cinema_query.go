@@ -5,7 +5,10 @@ package ent
 import (
 	"cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/predicate"
+	"cinema/pkg/ent/screening"
+	"cinema/pkg/ent/seat"
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -19,11 +22,13 @@ import (
 // CinemaQuery is the builder for querying Cinema entities.
 type CinemaQuery struct {
 	config
-	ctx        *QueryContext
-	order      []cinema.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Cinema
-	modifiers  []func(*sql.Selector)
+	ctx            *QueryContext
+	order          []cinema.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.Cinema
+	withSeats      *SeatQuery
+	withScreenings *ScreeningQuery
+	modifiers      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +63,50 @@ func (cq *CinemaQuery) Unique(unique bool) *CinemaQuery {
 func (cq *CinemaQuery) Order(o ...cinema.OrderOption) *CinemaQuery {
 	cq.order = append(cq.order, o...)
 	return cq
+}
+
+// QuerySeats chains the current query on the "seats" edge.
+func (cq *CinemaQuery) QuerySeats() *SeatQuery {
+	query := (&SeatClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cinema.Table, cinema.FieldID, selector),
+			sqlgraph.To(seat.Table, seat.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cinema.SeatsTable, cinema.SeatsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryScreenings chains the current query on the "screenings" edge.
+func (cq *CinemaQuery) QueryScreenings() *ScreeningQuery {
+	query := (&ScreeningClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cinema.Table, cinema.FieldID, selector),
+			sqlgraph.To(screening.Table, screening.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cinema.ScreeningsTable, cinema.ScreeningsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Cinema entity from the query.
@@ -247,16 +296,40 @@ func (cq *CinemaQuery) Clone() *CinemaQuery {
 		return nil
 	}
 	return &CinemaQuery{
-		config:     cq.config,
-		ctx:        cq.ctx.Clone(),
-		order:      append([]cinema.OrderOption{}, cq.order...),
-		inters:     append([]Interceptor{}, cq.inters...),
-		predicates: append([]predicate.Cinema{}, cq.predicates...),
+		config:         cq.config,
+		ctx:            cq.ctx.Clone(),
+		order:          append([]cinema.OrderOption{}, cq.order...),
+		inters:         append([]Interceptor{}, cq.inters...),
+		predicates:     append([]predicate.Cinema{}, cq.predicates...),
+		withSeats:      cq.withSeats.Clone(),
+		withScreenings: cq.withScreenings.Clone(),
 		// clone intermediate query.
 		sql:       cq.sql.Clone(),
 		path:      cq.path,
 		modifiers: append([]func(*sql.Selector){}, cq.modifiers...),
 	}
+}
+
+// WithSeats tells the query-builder to eager-load the nodes that are connected to
+// the "seats" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CinemaQuery) WithSeats(opts ...func(*SeatQuery)) *CinemaQuery {
+	query := (&SeatClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withSeats = query
+	return cq
+}
+
+// WithScreenings tells the query-builder to eager-load the nodes that are connected to
+// the "screenings" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CinemaQuery) WithScreenings(opts ...func(*ScreeningQuery)) *CinemaQuery {
+	query := (&ScreeningClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withScreenings = query
+	return cq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -335,8 +408,12 @@ func (cq *CinemaQuery) prepareQuery(ctx context.Context) error {
 
 func (cq *CinemaQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cinema, error) {
 	var (
-		nodes = []*Cinema{}
-		_spec = cq.querySpec()
+		nodes       = []*Cinema{}
+		_spec       = cq.querySpec()
+		loadedTypes = [2]bool{
+			cq.withSeats != nil,
+			cq.withScreenings != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Cinema).scanValues(nil, columns)
@@ -344,6 +421,7 @@ func (cq *CinemaQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cinem
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Cinema{config: cq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(cq.modifiers) > 0 {
@@ -358,7 +436,84 @@ func (cq *CinemaQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cinem
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := cq.withSeats; query != nil {
+		if err := cq.loadSeats(ctx, query, nodes,
+			func(n *Cinema) { n.Edges.Seats = []*Seat{} },
+			func(n *Cinema, e *Seat) { n.Edges.Seats = append(n.Edges.Seats, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withScreenings; query != nil {
+		if err := cq.loadScreenings(ctx, query, nodes,
+			func(n *Cinema) { n.Edges.Screenings = []*Screening{} },
+			func(n *Cinema, e *Screening) { n.Edges.Screenings = append(n.Edges.Screenings, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (cq *CinemaQuery) loadSeats(ctx context.Context, query *SeatQuery, nodes []*Cinema, init func(*Cinema), assign func(*Cinema, *Seat)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Cinema)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Seat(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(cinema.SeatsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.cinema_seats
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "cinema_seats" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "cinema_seats" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *CinemaQuery) loadScreenings(ctx context.Context, query *ScreeningQuery, nodes []*Cinema, init func(*Cinema), assign func(*Cinema, *Screening)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Cinema)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Screening(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(cinema.ScreeningsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.cinema_screenings
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "cinema_screenings" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "cinema_screenings" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (cq *CinemaQuery) sqlCount(ctx context.Context) (int, error) {

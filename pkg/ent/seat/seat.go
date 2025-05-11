@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -21,8 +22,26 @@ const (
 	FieldRow = "row"
 	// FieldColumn holds the string denoting the column field in the database.
 	FieldColumn = "column"
+	// EdgeCinema holds the string denoting the cinema edge name in mutations.
+	EdgeCinema = "cinema"
+	// EdgeSeatReservations holds the string denoting the seat_reservations edge name in mutations.
+	EdgeSeatReservations = "seat_reservations"
 	// Table holds the table name of the seat in the database.
 	Table = "seats"
+	// CinemaTable is the table that holds the cinema relation/edge.
+	CinemaTable = "seats"
+	// CinemaInverseTable is the table name for the Cinema entity.
+	// It exists in this package in order to avoid circular dependency with the "cinema" package.
+	CinemaInverseTable = "cinemas"
+	// CinemaColumn is the table column denoting the cinema relation/edge.
+	CinemaColumn = "cinema_seats"
+	// SeatReservationsTable is the table that holds the seat_reservations relation/edge.
+	SeatReservationsTable = "seat_reservations"
+	// SeatReservationsInverseTable is the table name for the SeatReservation entity.
+	// It exists in this package in order to avoid circular dependency with the "seatreservation" package.
+	SeatReservationsInverseTable = "seat_reservations"
+	// SeatReservationsColumn is the table column denoting the seat_reservations relation/edge.
+	SeatReservationsColumn = "seat_seat_reservations"
 )
 
 // Columns holds all SQL columns for seat fields.
@@ -34,10 +53,21 @@ var Columns = []string{
 	FieldColumn,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "seats"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"cinema_seats",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -83,4 +113,39 @@ func ByRow(opts ...sql.OrderTermOption) OrderOption {
 // ByColumn orders the results by the column field.
 func ByColumn(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldColumn, opts...).ToFunc()
+}
+
+// ByCinemaField orders the results by cinema field.
+func ByCinemaField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCinemaStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySeatReservationsCount orders the results by seat_reservations count.
+func BySeatReservationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeatReservationsStep(), opts...)
+	}
+}
+
+// BySeatReservations orders the results by seat_reservations terms.
+func BySeatReservations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeatReservationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newCinemaStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CinemaInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CinemaTable, CinemaColumn),
+	)
+}
+func newSeatReservationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeatReservationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeatReservationsTable, SeatReservationsColumn),
+	)
 }

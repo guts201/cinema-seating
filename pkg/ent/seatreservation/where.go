@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -343,6 +344,52 @@ func EndTimeLT(v time.Time) predicate.SeatReservation {
 // EndTimeLTE applies the LTE predicate on the "end_time" field.
 func EndTimeLTE(v time.Time) predicate.SeatReservation {
 	return predicate.SeatReservation(sql.FieldLTE(FieldEndTime, v))
+}
+
+// HasSeat applies the HasEdge predicate on the "seat" edge.
+func HasSeat() predicate.SeatReservation {
+	return predicate.SeatReservation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SeatTable, SeatColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeatWith applies the HasEdge predicate on the "seat" edge with a given conditions (other predicates).
+func HasSeatWith(preds ...predicate.Seat) predicate.SeatReservation {
+	return predicate.SeatReservation(func(s *sql.Selector) {
+		step := newSeatStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasScreening applies the HasEdge predicate on the "screening" edge.
+func HasScreening() predicate.SeatReservation {
+	return predicate.SeatReservation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ScreeningTable, ScreeningColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasScreeningWith applies the HasEdge predicate on the "screening" edge with a given conditions (other predicates).
+func HasScreeningWith(preds ...predicate.Screening) predicate.SeatReservation {
+	return predicate.SeatReservation(func(s *sql.Selector) {
+		step := newScreeningStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

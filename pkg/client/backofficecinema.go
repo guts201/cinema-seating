@@ -11,16 +11,16 @@ import (
 	pb "cinema/api"
 )
 
-type CinemaClient struct {
-	pb.CinemaClient
+type BackofficeCinemaClient struct {
+	pb.BackofficeCinemaClient
 }
 
-func NewCinemaClient(config *carbon.TCPSocket, options ...grpc.DialOption) (*CinemaClient, error) {
+func NewBackofficeCinemaClient(config *carbon.TCPSocket, options ...grpc.DialOption) (*BackofficeCinemaClient, error) {
 	conn, err := client.NewClientConnection(config, options...)
 	if err != nil {
 		return nil, err
 	}
-	return &CinemaClient{
-		CinemaClient: pb.NewCinemaClient(conn),
+	return &BackofficeCinemaClient{
+		BackofficeCinemaClient: pb.NewBackofficeCinemaClient(conn),
 	}, nil
 }

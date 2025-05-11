@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -18,158 +19,424 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// CinemaClient is the client API for Cinema service.
+// ClientCinemaClient is the client API for ClientCinema service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type CinemaClient interface {
+type ClientCinemaClient interface {
 	GetAvailableGroups(ctx context.Context, in *GetAvailableGroupsRequest, opts ...grpc.CallOption) (*GetAvailableGroupsResponse, error)
 	ReserveSeats(ctx context.Context, in *ReserveSeatsRequest, opts ...grpc.CallOption) (*ReserveSeatsResponse, error)
 	CancelSeats(ctx context.Context, in *CancelSeatsRequest, opts ...grpc.CallOption) (*CancelSeatsResponse, error)
 }
 
-type cinemaClient struct {
+type clientCinemaClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewCinemaClient(cc grpc.ClientConnInterface) CinemaClient {
-	return &cinemaClient{cc}
+func NewClientCinemaClient(cc grpc.ClientConnInterface) ClientCinemaClient {
+	return &clientCinemaClient{cc}
 }
 
-func (c *cinemaClient) GetAvailableGroups(ctx context.Context, in *GetAvailableGroupsRequest, opts ...grpc.CallOption) (*GetAvailableGroupsResponse, error) {
+func (c *clientCinemaClient) GetAvailableGroups(ctx context.Context, in *GetAvailableGroupsRequest, opts ...grpc.CallOption) (*GetAvailableGroupsResponse, error) {
 	out := new(GetAvailableGroupsResponse)
-	err := c.cc.Invoke(ctx, "/cinema.Cinema/GetAvailableGroups", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cinema.ClientCinema/GetAvailableGroups", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *cinemaClient) ReserveSeats(ctx context.Context, in *ReserveSeatsRequest, opts ...grpc.CallOption) (*ReserveSeatsResponse, error) {
+func (c *clientCinemaClient) ReserveSeats(ctx context.Context, in *ReserveSeatsRequest, opts ...grpc.CallOption) (*ReserveSeatsResponse, error) {
 	out := new(ReserveSeatsResponse)
-	err := c.cc.Invoke(ctx, "/cinema.Cinema/ReserveSeats", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cinema.ClientCinema/ReserveSeats", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *cinemaClient) CancelSeats(ctx context.Context, in *CancelSeatsRequest, opts ...grpc.CallOption) (*CancelSeatsResponse, error) {
+func (c *clientCinemaClient) CancelSeats(ctx context.Context, in *CancelSeatsRequest, opts ...grpc.CallOption) (*CancelSeatsResponse, error) {
 	out := new(CancelSeatsResponse)
-	err := c.cc.Invoke(ctx, "/cinema.Cinema/CancelSeats", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cinema.ClientCinema/CancelSeats", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// CinemaServer is the server API for Cinema service.
-// All implementations must embed UnimplementedCinemaServer
+// ClientCinemaServer is the server API for ClientCinema service.
+// All implementations must embed UnimplementedClientCinemaServer
 // for forward compatibility
-type CinemaServer interface {
+type ClientCinemaServer interface {
 	GetAvailableGroups(context.Context, *GetAvailableGroupsRequest) (*GetAvailableGroupsResponse, error)
 	ReserveSeats(context.Context, *ReserveSeatsRequest) (*ReserveSeatsResponse, error)
 	CancelSeats(context.Context, *CancelSeatsRequest) (*CancelSeatsResponse, error)
-	mustEmbedUnimplementedCinemaServer()
+	mustEmbedUnimplementedClientCinemaServer()
 }
 
-// UnimplementedCinemaServer must be embedded to have forward compatible implementations.
-type UnimplementedCinemaServer struct {
+// UnimplementedClientCinemaServer must be embedded to have forward compatible implementations.
+type UnimplementedClientCinemaServer struct {
 }
 
-func (UnimplementedCinemaServer) GetAvailableGroups(context.Context, *GetAvailableGroupsRequest) (*GetAvailableGroupsResponse, error) {
+func (UnimplementedClientCinemaServer) GetAvailableGroups(context.Context, *GetAvailableGroupsRequest) (*GetAvailableGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAvailableGroups not implemented")
 }
-func (UnimplementedCinemaServer) ReserveSeats(context.Context, *ReserveSeatsRequest) (*ReserveSeatsResponse, error) {
+func (UnimplementedClientCinemaServer) ReserveSeats(context.Context, *ReserveSeatsRequest) (*ReserveSeatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReserveSeats not implemented")
 }
-func (UnimplementedCinemaServer) CancelSeats(context.Context, *CancelSeatsRequest) (*CancelSeatsResponse, error) {
+func (UnimplementedClientCinemaServer) CancelSeats(context.Context, *CancelSeatsRequest) (*CancelSeatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CancelSeats not implemented")
 }
-func (UnimplementedCinemaServer) mustEmbedUnimplementedCinemaServer() {}
+func (UnimplementedClientCinemaServer) mustEmbedUnimplementedClientCinemaServer() {}
 
-// UnsafeCinemaServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to CinemaServer will
+// UnsafeClientCinemaServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ClientCinemaServer will
 // result in compilation errors.
-type UnsafeCinemaServer interface {
-	mustEmbedUnimplementedCinemaServer()
+type UnsafeClientCinemaServer interface {
+	mustEmbedUnimplementedClientCinemaServer()
 }
 
-func RegisterCinemaServer(s grpc.ServiceRegistrar, srv CinemaServer) {
-	s.RegisterService(&Cinema_ServiceDesc, srv)
+func RegisterClientCinemaServer(s grpc.ServiceRegistrar, srv ClientCinemaServer) {
+	s.RegisterService(&ClientCinema_ServiceDesc, srv)
 }
 
-func _Cinema_GetAvailableGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ClientCinema_GetAvailableGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAvailableGroupsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CinemaServer).GetAvailableGroups(ctx, in)
+		return srv.(ClientCinemaServer).GetAvailableGroups(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cinema.Cinema/GetAvailableGroups",
+		FullMethod: "/cinema.ClientCinema/GetAvailableGroups",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CinemaServer).GetAvailableGroups(ctx, req.(*GetAvailableGroupsRequest))
+		return srv.(ClientCinemaServer).GetAvailableGroups(ctx, req.(*GetAvailableGroupsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Cinema_ReserveSeats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ClientCinema_ReserveSeats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReserveSeatsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CinemaServer).ReserveSeats(ctx, in)
+		return srv.(ClientCinemaServer).ReserveSeats(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cinema.Cinema/ReserveSeats",
+		FullMethod: "/cinema.ClientCinema/ReserveSeats",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CinemaServer).ReserveSeats(ctx, req.(*ReserveSeatsRequest))
+		return srv.(ClientCinemaServer).ReserveSeats(ctx, req.(*ReserveSeatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Cinema_CancelSeats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ClientCinema_CancelSeats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CancelSeatsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CinemaServer).CancelSeats(ctx, in)
+		return srv.(ClientCinemaServer).CancelSeats(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cinema.Cinema/CancelSeats",
+		FullMethod: "/cinema.ClientCinema/CancelSeats",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CinemaServer).CancelSeats(ctx, req.(*CancelSeatsRequest))
+		return srv.(ClientCinemaServer).CancelSeats(ctx, req.(*CancelSeatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Cinema_ServiceDesc is the grpc.ServiceDesc for Cinema service.
+// ClientCinema_ServiceDesc is the grpc.ServiceDesc for ClientCinema service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Cinema_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "cinema.Cinema",
-	HandlerType: (*CinemaServer)(nil),
+var ClientCinema_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "cinema.ClientCinema",
+	HandlerType: (*ClientCinemaServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GetAvailableGroups",
-			Handler:    _Cinema_GetAvailableGroups_Handler,
+			Handler:    _ClientCinema_GetAvailableGroups_Handler,
 		},
 		{
 			MethodName: "ReserveSeats",
-			Handler:    _Cinema_ReserveSeats_Handler,
+			Handler:    _ClientCinema_ReserveSeats_Handler,
 		},
 		{
 			MethodName: "CancelSeats",
-			Handler:    _Cinema_CancelSeats_Handler,
+			Handler:    _ClientCinema_CancelSeats_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "cinema-seating/api/cinema.proto",
+}
+
+// BackofficeCinemaClient is the client API for BackofficeCinema service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type BackofficeCinemaClient interface {
+	CreateCinema(ctx context.Context, in *CreateCinemaRequest, opts ...grpc.CallOption) (*CreateCinemaResponse, error)
+	UpdateCinema(ctx context.Context, in *UpdateCinemaRequest, opts ...grpc.CallOption) (*UpdateCinemaResponse, error)
+	DeleteCinema(ctx context.Context, in *DeleteCinemaRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetCinemas(ctx context.Context, in *GetCinemasRequest, opts ...grpc.CallOption) (*GetCinemasResponse, error)
+	GetCinema(ctx context.Context, in *GetCinemaRequest, opts ...grpc.CallOption) (*GetCinemaResponse, error)
+	CreateMovie(ctx context.Context, in *CreateMovieRequest, opts ...grpc.CallOption) (*CreateMovieResponse, error)
+}
+
+type backofficeCinemaClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewBackofficeCinemaClient(cc grpc.ClientConnInterface) BackofficeCinemaClient {
+	return &backofficeCinemaClient{cc}
+}
+
+func (c *backofficeCinemaClient) CreateCinema(ctx context.Context, in *CreateCinemaRequest, opts ...grpc.CallOption) (*CreateCinemaResponse, error) {
+	out := new(CreateCinemaResponse)
+	err := c.cc.Invoke(ctx, "/cinema.BackofficeCinema/CreateCinema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backofficeCinemaClient) UpdateCinema(ctx context.Context, in *UpdateCinemaRequest, opts ...grpc.CallOption) (*UpdateCinemaResponse, error) {
+	out := new(UpdateCinemaResponse)
+	err := c.cc.Invoke(ctx, "/cinema.BackofficeCinema/UpdateCinema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backofficeCinemaClient) DeleteCinema(ctx context.Context, in *DeleteCinemaRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/cinema.BackofficeCinema/DeleteCinema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backofficeCinemaClient) GetCinemas(ctx context.Context, in *GetCinemasRequest, opts ...grpc.CallOption) (*GetCinemasResponse, error) {
+	out := new(GetCinemasResponse)
+	err := c.cc.Invoke(ctx, "/cinema.BackofficeCinema/GetCinemas", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backofficeCinemaClient) GetCinema(ctx context.Context, in *GetCinemaRequest, opts ...grpc.CallOption) (*GetCinemaResponse, error) {
+	out := new(GetCinemaResponse)
+	err := c.cc.Invoke(ctx, "/cinema.BackofficeCinema/GetCinema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backofficeCinemaClient) CreateMovie(ctx context.Context, in *CreateMovieRequest, opts ...grpc.CallOption) (*CreateMovieResponse, error) {
+	out := new(CreateMovieResponse)
+	err := c.cc.Invoke(ctx, "/cinema.BackofficeCinema/CreateMovie", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BackofficeCinemaServer is the server API for BackofficeCinema service.
+// All implementations must embed UnimplementedBackofficeCinemaServer
+// for forward compatibility
+type BackofficeCinemaServer interface {
+	CreateCinema(context.Context, *CreateCinemaRequest) (*CreateCinemaResponse, error)
+	UpdateCinema(context.Context, *UpdateCinemaRequest) (*UpdateCinemaResponse, error)
+	DeleteCinema(context.Context, *DeleteCinemaRequest) (*emptypb.Empty, error)
+	GetCinemas(context.Context, *GetCinemasRequest) (*GetCinemasResponse, error)
+	GetCinema(context.Context, *GetCinemaRequest) (*GetCinemaResponse, error)
+	CreateMovie(context.Context, *CreateMovieRequest) (*CreateMovieResponse, error)
+	mustEmbedUnimplementedBackofficeCinemaServer()
+}
+
+// UnimplementedBackofficeCinemaServer must be embedded to have forward compatible implementations.
+type UnimplementedBackofficeCinemaServer struct {
+}
+
+func (UnimplementedBackofficeCinemaServer) CreateCinema(context.Context, *CreateCinemaRequest) (*CreateCinemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateCinema not implemented")
+}
+func (UnimplementedBackofficeCinemaServer) UpdateCinema(context.Context, *UpdateCinemaRequest) (*UpdateCinemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCinema not implemented")
+}
+func (UnimplementedBackofficeCinemaServer) DeleteCinema(context.Context, *DeleteCinemaRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteCinema not implemented")
+}
+func (UnimplementedBackofficeCinemaServer) GetCinemas(context.Context, *GetCinemasRequest) (*GetCinemasResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCinemas not implemented")
+}
+func (UnimplementedBackofficeCinemaServer) GetCinema(context.Context, *GetCinemaRequest) (*GetCinemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCinema not implemented")
+}
+func (UnimplementedBackofficeCinemaServer) CreateMovie(context.Context, *CreateMovieRequest) (*CreateMovieResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateMovie not implemented")
+}
+func (UnimplementedBackofficeCinemaServer) mustEmbedUnimplementedBackofficeCinemaServer() {}
+
+// UnsafeBackofficeCinemaServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to BackofficeCinemaServer will
+// result in compilation errors.
+type UnsafeBackofficeCinemaServer interface {
+	mustEmbedUnimplementedBackofficeCinemaServer()
+}
+
+func RegisterBackofficeCinemaServer(s grpc.ServiceRegistrar, srv BackofficeCinemaServer) {
+	s.RegisterService(&BackofficeCinema_ServiceDesc, srv)
+}
+
+func _BackofficeCinema_CreateCinema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCinemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackofficeCinemaServer).CreateCinema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cinema.BackofficeCinema/CreateCinema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackofficeCinemaServer).CreateCinema(ctx, req.(*CreateCinemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackofficeCinema_UpdateCinema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCinemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackofficeCinemaServer).UpdateCinema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cinema.BackofficeCinema/UpdateCinema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackofficeCinemaServer).UpdateCinema(ctx, req.(*UpdateCinemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackofficeCinema_DeleteCinema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCinemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackofficeCinemaServer).DeleteCinema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cinema.BackofficeCinema/DeleteCinema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackofficeCinemaServer).DeleteCinema(ctx, req.(*DeleteCinemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackofficeCinema_GetCinemas_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCinemasRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackofficeCinemaServer).GetCinemas(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cinema.BackofficeCinema/GetCinemas",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackofficeCinemaServer).GetCinemas(ctx, req.(*GetCinemasRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackofficeCinema_GetCinema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCinemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackofficeCinemaServer).GetCinema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cinema.BackofficeCinema/GetCinema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackofficeCinemaServer).GetCinema(ctx, req.(*GetCinemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackofficeCinema_CreateMovie_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMovieRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackofficeCinemaServer).CreateMovie(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cinema.BackofficeCinema/CreateMovie",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackofficeCinemaServer).CreateMovie(ctx, req.(*CreateMovieRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// BackofficeCinema_ServiceDesc is the grpc.ServiceDesc for BackofficeCinema service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var BackofficeCinema_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "cinema.BackofficeCinema",
+	HandlerType: (*BackofficeCinemaServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateCinema",
+			Handler:    _BackofficeCinema_CreateCinema_Handler,
+		},
+		{
+			MethodName: "UpdateCinema",
+			Handler:    _BackofficeCinema_UpdateCinema_Handler,
+		},
+		{
+			MethodName: "DeleteCinema",
+			Handler:    _BackofficeCinema_DeleteCinema_Handler,
+		},
+		{
+			MethodName: "GetCinemas",
+			Handler:    _BackofficeCinema_GetCinemas_Handler,
+		},
+		{
+			MethodName: "GetCinema",
+			Handler:    _BackofficeCinema_GetCinema_Handler,
+		},
+		{
+			MethodName: "CreateMovie",
+			Handler:    _BackofficeCinema_CreateMovie_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

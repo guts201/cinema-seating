@@ -3,9 +3,18 @@ syntax = "proto3";
 package cinema;
 
 option go_package = "cinema/api;cinema";
+import "google/protobuf/empty.proto";
 
 
 // ===== Messages =====
+message Cinema {
+  int64 id = 1;
+  string name = 2;
+  uint32 rows = 3;
+  uint32 columns = 4;
+  uint32 min_distance = 5;
+}
+
 message Movie {
     int32 id = 1;
     string title = 2;
@@ -59,9 +68,83 @@ message Movie {
     repeated SeatGroup groups = 1;
   }
   
+enum SeatReservationStatus {
+  PENDING = 0;
+  RESERVED = 1;
+  CANCELED = 2;
+}
   // ===== Service =====
-  service Cinema {
+service ClientCinema {
     rpc GetAvailableGroups(GetAvailableGroupsRequest) returns (GetAvailableGroupsResponse);
     rpc ReserveSeats(ReserveSeatsRequest) returns (ReserveSeatsResponse);
     rpc CancelSeats(CancelSeatsRequest) returns (CancelSeatsResponse);
-  }
+}
+
+service BackofficeCinema{
+  rpc CreateCinema(CreateCinemaRequest) returns (CreateCinemaResponse);
+  rpc UpdateCinema(UpdateCinemaRequest) returns (UpdateCinemaResponse);
+  rpc DeleteCinema(DeleteCinemaRequest) returns (google.protobuf.Empty);
+  rpc GetCinemas(GetCinemasRequest) returns (GetCinemasResponse);
+  rpc GetCinema(GetCinemaRequest) returns (GetCinemaResponse);
+
+  rpc CreateMovie(CreateMovieRequest) returns (CreateMovieResponse);
+  /* TODO implement
+  rpc UpdateMovie(UpdateMovieRequest) returns (UpdateMovieResponse);
+  rpc DeleteMovie(DeleteMovieRequest) returns (google.protobuf.Empty);
+  rpc GetMovies(GetMoviesRequest) returns (GetMoviesResponse);
+  rpc GetMovie(GetMovieRequest) returns (GetMovieResponse);
+  */
+}
+
+message CreateCinemaRequest{
+  string name = 1;
+  uint32 rows = 3;
+  uint32 columns = 4;
+  uint32 min_distance = 5;
+}
+
+message CreateCinemaResponse{
+  int64 id = 1;
+}
+
+message UpdateCinemaRequest{
+  int64 id = 1;
+  string name = 2;
+  uint32 rows = 3;
+  uint32 columns = 4;
+  uint32 min_distance = 5;
+}
+
+message UpdateCinemaResponse{
+  int64 id = 1;
+}
+
+message DeleteCinemaRequest{
+  int64 id = 1;
+}
+
+message GetCinemasRequest{
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetCinemasResponse{
+  repeated Cinema cinemas = 1;
+}
+
+message GetCinemaRequest{
+  int64 id = 1;
+}
+
+message GetCinemaResponse{
+  Cinema cinema = 1;
+}
+
+message CreateMovieRequest{
+  string title = 1;
+  int32 duration_minutes = 2;
+}
+
+message CreateMovieResponse{
+  int64 id = 1;
+}

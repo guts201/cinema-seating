@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"cinema/pkg/ent/screening"
+	"cinema/pkg/ent/seat"
 	"cinema/pkg/ent/seatreservation"
 	"context"
 	"errors"
@@ -117,6 +119,44 @@ func (src *SeatReservationCreate) SetNillableEndTime(t *time.Time) *SeatReservat
 func (src *SeatReservationCreate) SetID(i int64) *SeatReservationCreate {
 	src.mutation.SetID(i)
 	return src
+}
+
+// SetSeatID sets the "seat" edge to the Seat entity by ID.
+func (src *SeatReservationCreate) SetSeatID(id int64) *SeatReservationCreate {
+	src.mutation.SetSeatID(id)
+	return src
+}
+
+// SetNillableSeatID sets the "seat" edge to the Seat entity by ID if the given value is not nil.
+func (src *SeatReservationCreate) SetNillableSeatID(id *int64) *SeatReservationCreate {
+	if id != nil {
+		src = src.SetSeatID(*id)
+	}
+	return src
+}
+
+// SetSeat sets the "seat" edge to the Seat entity.
+func (src *SeatReservationCreate) SetSeat(s *Seat) *SeatReservationCreate {
+	return src.SetSeatID(s.ID)
+}
+
+// SetScreeningID sets the "screening" edge to the Screening entity by ID.
+func (src *SeatReservationCreate) SetScreeningID(id int64) *SeatReservationCreate {
+	src.mutation.SetScreeningID(id)
+	return src
+}
+
+// SetNillableScreeningID sets the "screening" edge to the Screening entity by ID if the given value is not nil.
+func (src *SeatReservationCreate) SetNillableScreeningID(id *int64) *SeatReservationCreate {
+	if id != nil {
+		src = src.SetScreeningID(*id)
+	}
+	return src
+}
+
+// SetScreening sets the "screening" edge to the Screening entity.
+func (src *SeatReservationCreate) SetScreening(s *Screening) *SeatReservationCreate {
+	return src.SetScreeningID(s.ID)
 }
 
 // Mutation returns the SeatReservationMutation object of the builder.
@@ -268,6 +308,40 @@ func (src *SeatReservationCreate) createSpec() (*SeatReservation, *sqlgraph.Crea
 	if value, ok := src.mutation.EndTime(); ok {
 		_spec.SetField(seatreservation.FieldEndTime, field.TypeTime, value)
 		_node.EndTime = value
+	}
+	if nodes := src.mutation.SeatIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatreservation.SeatTable,
+			Columns: []string{seatreservation.SeatColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seat.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.seat_seat_reservations = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := src.mutation.ScreeningIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatreservation.ScreeningTable,
+			Columns: []string{seatreservation.ScreeningColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.screening_seat_reservations = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -4,6 +4,8 @@ package ent
 
 import (
 	"cinema/pkg/ent/cinema"
+	"cinema/pkg/ent/screening"
+	"cinema/pkg/ent/seat"
 	"context"
 	"errors"
 	"fmt"
@@ -51,14 +53,14 @@ func (cc *CinemaCreate) SetNillableUpdatedAt(t *time.Time) *CinemaCreate {
 }
 
 // SetNumRow sets the "num_row" field.
-func (cc *CinemaCreate) SetNumRow(i int64) *CinemaCreate {
-	cc.mutation.SetNumRow(i)
+func (cc *CinemaCreate) SetNumRow(u uint32) *CinemaCreate {
+	cc.mutation.SetNumRow(u)
 	return cc
 }
 
 // SetNumColumn sets the "num_column" field.
-func (cc *CinemaCreate) SetNumColumn(i int64) *CinemaCreate {
-	cc.mutation.SetNumColumn(i)
+func (cc *CinemaCreate) SetNumColumn(u uint32) *CinemaCreate {
+	cc.mutation.SetNumColumn(u)
 	return cc
 }
 
@@ -68,9 +70,9 @@ func (cc *CinemaCreate) SetName(s string) *CinemaCreate {
 	return cc
 }
 
-// SetAddress sets the "address" field.
-func (cc *CinemaCreate) SetAddress(s string) *CinemaCreate {
-	cc.mutation.SetAddress(s)
+// SetMinDistance sets the "min_distance" field.
+func (cc *CinemaCreate) SetMinDistance(u uint32) *CinemaCreate {
+	cc.mutation.SetMinDistance(u)
 	return cc
 }
 
@@ -78,6 +80,36 @@ func (cc *CinemaCreate) SetAddress(s string) *CinemaCreate {
 func (cc *CinemaCreate) SetID(i int64) *CinemaCreate {
 	cc.mutation.SetID(i)
 	return cc
+}
+
+// AddSeatIDs adds the "seats" edge to the Seat entity by IDs.
+func (cc *CinemaCreate) AddSeatIDs(ids ...int64) *CinemaCreate {
+	cc.mutation.AddSeatIDs(ids...)
+	return cc
+}
+
+// AddSeats adds the "seats" edges to the Seat entity.
+func (cc *CinemaCreate) AddSeats(s ...*Seat) *CinemaCreate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cc.AddSeatIDs(ids...)
+}
+
+// AddScreeningIDs adds the "screenings" edge to the Screening entity by IDs.
+func (cc *CinemaCreate) AddScreeningIDs(ids ...int64) *CinemaCreate {
+	cc.mutation.AddScreeningIDs(ids...)
+	return cc
+}
+
+// AddScreenings adds the "screenings" edges to the Screening entity.
+func (cc *CinemaCreate) AddScreenings(s ...*Screening) *CinemaCreate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cc.AddScreeningIDs(ids...)
 }
 
 // Mutation returns the CinemaMutation object of the builder.
@@ -157,12 +189,12 @@ func (cc *CinemaCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Cinema.name": %w`, err)}
 		}
 	}
-	if _, ok := cc.mutation.Address(); !ok {
-		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "Cinema.address"`)}
+	if _, ok := cc.mutation.MinDistance(); !ok {
+		return &ValidationError{Name: "min_distance", err: errors.New(`ent: missing required field "Cinema.min_distance"`)}
 	}
-	if v, ok := cc.mutation.Address(); ok {
-		if err := cinema.AddressValidator(v); err != nil {
-			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Cinema.address": %w`, err)}
+	if v, ok := cc.mutation.MinDistance(); ok {
+		if err := cinema.MinDistanceValidator(v); err != nil {
+			return &ValidationError{Name: "min_distance", err: fmt.Errorf(`ent: validator failed for field "Cinema.min_distance": %w`, err)}
 		}
 	}
 	return nil
@@ -207,20 +239,52 @@ func (cc *CinemaCreate) createSpec() (*Cinema, *sqlgraph.CreateSpec) {
 		_node.UpdatedAt = value
 	}
 	if value, ok := cc.mutation.NumRow(); ok {
-		_spec.SetField(cinema.FieldNumRow, field.TypeInt64, value)
+		_spec.SetField(cinema.FieldNumRow, field.TypeUint32, value)
 		_node.NumRow = value
 	}
 	if value, ok := cc.mutation.NumColumn(); ok {
-		_spec.SetField(cinema.FieldNumColumn, field.TypeInt64, value)
+		_spec.SetField(cinema.FieldNumColumn, field.TypeUint32, value)
 		_node.NumColumn = value
 	}
 	if value, ok := cc.mutation.Name(); ok {
 		_spec.SetField(cinema.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := cc.mutation.Address(); ok {
-		_spec.SetField(cinema.FieldAddress, field.TypeString, value)
-		_node.Address = value
+	if value, ok := cc.mutation.MinDistance(); ok {
+		_spec.SetField(cinema.FieldMinDistance, field.TypeUint32, value)
+		_node.MinDistance = value
+	}
+	if nodes := cc.mutation.SeatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cinema.SeatsTable,
+			Columns: []string{cinema.SeatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seat.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.ScreeningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cinema.ScreeningsTable,
+			Columns: []string{cinema.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -287,7 +351,7 @@ func (u *CinemaUpsert) UpdateUpdatedAt() *CinemaUpsert {
 }
 
 // SetNumRow sets the "num_row" field.
-func (u *CinemaUpsert) SetNumRow(v int64) *CinemaUpsert {
+func (u *CinemaUpsert) SetNumRow(v uint32) *CinemaUpsert {
 	u.Set(cinema.FieldNumRow, v)
 	return u
 }
@@ -299,13 +363,13 @@ func (u *CinemaUpsert) UpdateNumRow() *CinemaUpsert {
 }
 
 // AddNumRow adds v to the "num_row" field.
-func (u *CinemaUpsert) AddNumRow(v int64) *CinemaUpsert {
+func (u *CinemaUpsert) AddNumRow(v uint32) *CinemaUpsert {
 	u.Add(cinema.FieldNumRow, v)
 	return u
 }
 
 // SetNumColumn sets the "num_column" field.
-func (u *CinemaUpsert) SetNumColumn(v int64) *CinemaUpsert {
+func (u *CinemaUpsert) SetNumColumn(v uint32) *CinemaUpsert {
 	u.Set(cinema.FieldNumColumn, v)
 	return u
 }
@@ -317,7 +381,7 @@ func (u *CinemaUpsert) UpdateNumColumn() *CinemaUpsert {
 }
 
 // AddNumColumn adds v to the "num_column" field.
-func (u *CinemaUpsert) AddNumColumn(v int64) *CinemaUpsert {
+func (u *CinemaUpsert) AddNumColumn(v uint32) *CinemaUpsert {
 	u.Add(cinema.FieldNumColumn, v)
 	return u
 }
@@ -334,15 +398,21 @@ func (u *CinemaUpsert) UpdateName() *CinemaUpsert {
 	return u
 }
 
-// SetAddress sets the "address" field.
-func (u *CinemaUpsert) SetAddress(v string) *CinemaUpsert {
-	u.Set(cinema.FieldAddress, v)
+// SetMinDistance sets the "min_distance" field.
+func (u *CinemaUpsert) SetMinDistance(v uint32) *CinemaUpsert {
+	u.Set(cinema.FieldMinDistance, v)
 	return u
 }
 
-// UpdateAddress sets the "address" field to the value that was provided on create.
-func (u *CinemaUpsert) UpdateAddress() *CinemaUpsert {
-	u.SetExcluded(cinema.FieldAddress)
+// UpdateMinDistance sets the "min_distance" field to the value that was provided on create.
+func (u *CinemaUpsert) UpdateMinDistance() *CinemaUpsert {
+	u.SetExcluded(cinema.FieldMinDistance)
+	return u
+}
+
+// AddMinDistance adds v to the "min_distance" field.
+func (u *CinemaUpsert) AddMinDistance(v uint32) *CinemaUpsert {
+	u.Add(cinema.FieldMinDistance, v)
 	return u
 }
 
@@ -412,14 +482,14 @@ func (u *CinemaUpsertOne) UpdateUpdatedAt() *CinemaUpsertOne {
 }
 
 // SetNumRow sets the "num_row" field.
-func (u *CinemaUpsertOne) SetNumRow(v int64) *CinemaUpsertOne {
+func (u *CinemaUpsertOne) SetNumRow(v uint32) *CinemaUpsertOne {
 	return u.Update(func(s *CinemaUpsert) {
 		s.SetNumRow(v)
 	})
 }
 
 // AddNumRow adds v to the "num_row" field.
-func (u *CinemaUpsertOne) AddNumRow(v int64) *CinemaUpsertOne {
+func (u *CinemaUpsertOne) AddNumRow(v uint32) *CinemaUpsertOne {
 	return u.Update(func(s *CinemaUpsert) {
 		s.AddNumRow(v)
 	})
@@ -433,14 +503,14 @@ func (u *CinemaUpsertOne) UpdateNumRow() *CinemaUpsertOne {
 }
 
 // SetNumColumn sets the "num_column" field.
-func (u *CinemaUpsertOne) SetNumColumn(v int64) *CinemaUpsertOne {
+func (u *CinemaUpsertOne) SetNumColumn(v uint32) *CinemaUpsertOne {
 	return u.Update(func(s *CinemaUpsert) {
 		s.SetNumColumn(v)
 	})
 }
 
 // AddNumColumn adds v to the "num_column" field.
-func (u *CinemaUpsertOne) AddNumColumn(v int64) *CinemaUpsertOne {
+func (u *CinemaUpsertOne) AddNumColumn(v uint32) *CinemaUpsertOne {
 	return u.Update(func(s *CinemaUpsert) {
 		s.AddNumColumn(v)
 	})
@@ -467,17 +537,24 @@ func (u *CinemaUpsertOne) UpdateName() *CinemaUpsertOne {
 	})
 }
 
-// SetAddress sets the "address" field.
-func (u *CinemaUpsertOne) SetAddress(v string) *CinemaUpsertOne {
+// SetMinDistance sets the "min_distance" field.
+func (u *CinemaUpsertOne) SetMinDistance(v uint32) *CinemaUpsertOne {
 	return u.Update(func(s *CinemaUpsert) {
-		s.SetAddress(v)
+		s.SetMinDistance(v)
 	})
 }
 
-// UpdateAddress sets the "address" field to the value that was provided on create.
-func (u *CinemaUpsertOne) UpdateAddress() *CinemaUpsertOne {
+// AddMinDistance adds v to the "min_distance" field.
+func (u *CinemaUpsertOne) AddMinDistance(v uint32) *CinemaUpsertOne {
 	return u.Update(func(s *CinemaUpsert) {
-		s.UpdateAddress()
+		s.AddMinDistance(v)
+	})
+}
+
+// UpdateMinDistance sets the "min_distance" field to the value that was provided on create.
+func (u *CinemaUpsertOne) UpdateMinDistance() *CinemaUpsertOne {
+	return u.Update(func(s *CinemaUpsert) {
+		s.UpdateMinDistance()
 	})
 }
 
@@ -713,14 +790,14 @@ func (u *CinemaUpsertBulk) UpdateUpdatedAt() *CinemaUpsertBulk {
 }
 
 // SetNumRow sets the "num_row" field.
-func (u *CinemaUpsertBulk) SetNumRow(v int64) *CinemaUpsertBulk {
+func (u *CinemaUpsertBulk) SetNumRow(v uint32) *CinemaUpsertBulk {
 	return u.Update(func(s *CinemaUpsert) {
 		s.SetNumRow(v)
 	})
 }
 
 // AddNumRow adds v to the "num_row" field.
-func (u *CinemaUpsertBulk) AddNumRow(v int64) *CinemaUpsertBulk {
+func (u *CinemaUpsertBulk) AddNumRow(v uint32) *CinemaUpsertBulk {
 	return u.Update(func(s *CinemaUpsert) {
 		s.AddNumRow(v)
 	})
@@ -734,14 +811,14 @@ func (u *CinemaUpsertBulk) UpdateNumRow() *CinemaUpsertBulk {
 }
 
 // SetNumColumn sets the "num_column" field.
-func (u *CinemaUpsertBulk) SetNumColumn(v int64) *CinemaUpsertBulk {
+func (u *CinemaUpsertBulk) SetNumColumn(v uint32) *CinemaUpsertBulk {
 	return u.Update(func(s *CinemaUpsert) {
 		s.SetNumColumn(v)
 	})
 }
 
 // AddNumColumn adds v to the "num_column" field.
-func (u *CinemaUpsertBulk) AddNumColumn(v int64) *CinemaUpsertBulk {
+func (u *CinemaUpsertBulk) AddNumColumn(v uint32) *CinemaUpsertBulk {
 	return u.Update(func(s *CinemaUpsert) {
 		s.AddNumColumn(v)
 	})
@@ -768,17 +845,24 @@ func (u *CinemaUpsertBulk) UpdateName() *CinemaUpsertBulk {
 	})
 }
 
-// SetAddress sets the "address" field.
-func (u *CinemaUpsertBulk) SetAddress(v string) *CinemaUpsertBulk {
+// SetMinDistance sets the "min_distance" field.
+func (u *CinemaUpsertBulk) SetMinDistance(v uint32) *CinemaUpsertBulk {
 	return u.Update(func(s *CinemaUpsert) {
-		s.SetAddress(v)
+		s.SetMinDistance(v)
 	})
 }
 
-// UpdateAddress sets the "address" field to the value that was provided on create.
-func (u *CinemaUpsertBulk) UpdateAddress() *CinemaUpsertBulk {
+// AddMinDistance adds v to the "min_distance" field.
+func (u *CinemaUpsertBulk) AddMinDistance(v uint32) *CinemaUpsertBulk {
 	return u.Update(func(s *CinemaUpsert) {
-		s.UpdateAddress()
+		s.AddMinDistance(v)
+	})
+}
+
+// UpdateMinDistance sets the "min_distance" field to the value that was provided on create.
+func (u *CinemaUpsertBulk) UpdateMinDistance() *CinemaUpsertBulk {
+	return u.Update(func(s *CinemaUpsert) {
+		s.UpdateMinDistance()
 	})
 }
 

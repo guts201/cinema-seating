@@ -20,6 +20,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -345,6 +346,38 @@ func (c *CinemaClient) GetX(ctx context.Context, id int64) *Cinema {
 	return obj
 }
 
+// QuerySeats queries the seats edge of a Cinema.
+func (c *CinemaClient) QuerySeats(ci *Cinema) *SeatQuery {
+	query := (&SeatClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cinema.Table, cinema.FieldID, id),
+			sqlgraph.To(seat.Table, seat.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cinema.SeatsTable, cinema.SeatsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryScreenings queries the screenings edge of a Cinema.
+func (c *CinemaClient) QueryScreenings(ci *Cinema) *ScreeningQuery {
+	query := (&ScreeningClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cinema.Table, cinema.FieldID, id),
+			sqlgraph.To(screening.Table, screening.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, cinema.ScreeningsTable, cinema.ScreeningsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CinemaClient) Hooks() []Hook {
 	return c.hooks.Cinema
@@ -476,6 +509,22 @@ func (c *MovieClient) GetX(ctx context.Context, id int64) *Movie {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryScreenings queries the screenings edge of a Movie.
+func (c *MovieClient) QueryScreenings(m *Movie) *ScreeningQuery {
+	query := (&ScreeningClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(movie.Table, movie.FieldID, id),
+			sqlgraph.To(screening.Table, screening.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, movie.ScreeningsTable, movie.ScreeningsColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -611,6 +660,54 @@ func (c *ScreeningClient) GetX(ctx context.Context, id int64) *Screening {
 	return obj
 }
 
+// QueryMovie queries the movie edge of a Screening.
+func (c *ScreeningClient) QueryMovie(s *Screening) *MovieQuery {
+	query := (&MovieClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(screening.Table, screening.FieldID, id),
+			sqlgraph.To(movie.Table, movie.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, screening.MovieTable, screening.MovieColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCinema queries the cinema edge of a Screening.
+func (c *ScreeningClient) QueryCinema(s *Screening) *CinemaQuery {
+	query := (&CinemaClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(screening.Table, screening.FieldID, id),
+			sqlgraph.To(cinema.Table, cinema.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, screening.CinemaTable, screening.CinemaColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeatReservations queries the seat_reservations edge of a Screening.
+func (c *ScreeningClient) QuerySeatReservations(s *Screening) *SeatReservationQuery {
+	query := (&SeatReservationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(screening.Table, screening.FieldID, id),
+			sqlgraph.To(seatreservation.Table, seatreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, screening.SeatReservationsTable, screening.SeatReservationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ScreeningClient) Hooks() []Hook {
 	return c.hooks.Screening
@@ -744,6 +841,38 @@ func (c *SeatClient) GetX(ctx context.Context, id int64) *Seat {
 	return obj
 }
 
+// QueryCinema queries the cinema edge of a Seat.
+func (c *SeatClient) QueryCinema(s *Seat) *CinemaQuery {
+	query := (&CinemaClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seat.Table, seat.FieldID, id),
+			sqlgraph.To(cinema.Table, cinema.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seat.CinemaTable, seat.CinemaColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySeatReservations queries the seat_reservations edge of a Seat.
+func (c *SeatClient) QuerySeatReservations(s *Seat) *SeatReservationQuery {
+	query := (&SeatReservationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seat.Table, seat.FieldID, id),
+			sqlgraph.To(seatreservation.Table, seatreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seat.SeatReservationsTable, seat.SeatReservationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SeatClient) Hooks() []Hook {
 	return c.hooks.Seat
@@ -875,6 +1004,38 @@ func (c *SeatReservationClient) GetX(ctx context.Context, id int64) *SeatReserva
 		panic(err)
 	}
 	return obj
+}
+
+// QuerySeat queries the seat edge of a SeatReservation.
+func (c *SeatReservationClient) QuerySeat(sr *SeatReservation) *SeatQuery {
+	query := (&SeatClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatreservation.Table, seatreservation.FieldID, id),
+			sqlgraph.To(seat.Table, seat.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatreservation.SeatTable, seatreservation.SeatColumn),
+		)
+		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryScreening queries the screening edge of a SeatReservation.
+func (c *SeatReservationClient) QueryScreening(sr *SeatReservation) *ScreeningQuery {
+	query := (&ScreeningClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatreservation.Table, seatreservation.FieldID, id),
+			sqlgraph.To(screening.Table, screening.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatreservation.ScreeningTable, seatreservation.ScreeningColumn),
+		)
+		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

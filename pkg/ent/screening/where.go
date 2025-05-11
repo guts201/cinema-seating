@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -302,6 +303,75 @@ func MinDistanceLT(v int32) predicate.Screening {
 // MinDistanceLTE applies the LTE predicate on the "min_distance" field.
 func MinDistanceLTE(v int32) predicate.Screening {
 	return predicate.Screening(sql.FieldLTE(FieldMinDistance, v))
+}
+
+// HasMovie applies the HasEdge predicate on the "movie" edge.
+func HasMovie() predicate.Screening {
+	return predicate.Screening(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, MovieTable, MovieColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMovieWith applies the HasEdge predicate on the "movie" edge with a given conditions (other predicates).
+func HasMovieWith(preds ...predicate.Movie) predicate.Screening {
+	return predicate.Screening(func(s *sql.Selector) {
+		step := newMovieStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCinema applies the HasEdge predicate on the "cinema" edge.
+func HasCinema() predicate.Screening {
+	return predicate.Screening(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CinemaTable, CinemaColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCinemaWith applies the HasEdge predicate on the "cinema" edge with a given conditions (other predicates).
+func HasCinemaWith(preds ...predicate.Cinema) predicate.Screening {
+	return predicate.Screening(func(s *sql.Selector) {
+		step := newCinemaStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSeatReservations applies the HasEdge predicate on the "seat_reservations" edge.
+func HasSeatReservations() predicate.Screening {
+	return predicate.Screening(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeatReservationsTable, SeatReservationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeatReservationsWith applies the HasEdge predicate on the "seat_reservations" edge with a given conditions (other predicates).
+func HasSeatReservationsWith(preds ...predicate.SeatReservation) predicate.Screening {
+	return predicate.Screening(func(s *sql.Selector) {
+		step := newSeatReservationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

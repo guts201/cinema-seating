@@ -3,8 +3,10 @@
 package ent
 
 import (
+	"cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/predicate"
 	"cinema/pkg/ent/seat"
+	"cinema/pkg/ent/seatreservation"
 	"context"
 	"errors"
 	"fmt"
@@ -77,9 +79,70 @@ func (su *SeatUpdate) AddColumn(i int16) *SeatUpdate {
 	return su
 }
 
+// SetCinemaID sets the "cinema" edge to the Cinema entity by ID.
+func (su *SeatUpdate) SetCinemaID(id int64) *SeatUpdate {
+	su.mutation.SetCinemaID(id)
+	return su
+}
+
+// SetNillableCinemaID sets the "cinema" edge to the Cinema entity by ID if the given value is not nil.
+func (su *SeatUpdate) SetNillableCinemaID(id *int64) *SeatUpdate {
+	if id != nil {
+		su = su.SetCinemaID(*id)
+	}
+	return su
+}
+
+// SetCinema sets the "cinema" edge to the Cinema entity.
+func (su *SeatUpdate) SetCinema(c *Cinema) *SeatUpdate {
+	return su.SetCinemaID(c.ID)
+}
+
+// AddSeatReservationIDs adds the "seat_reservations" edge to the SeatReservation entity by IDs.
+func (su *SeatUpdate) AddSeatReservationIDs(ids ...int64) *SeatUpdate {
+	su.mutation.AddSeatReservationIDs(ids...)
+	return su
+}
+
+// AddSeatReservations adds the "seat_reservations" edges to the SeatReservation entity.
+func (su *SeatUpdate) AddSeatReservations(s ...*SeatReservation) *SeatUpdate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.AddSeatReservationIDs(ids...)
+}
+
 // Mutation returns the SeatMutation object of the builder.
 func (su *SeatUpdate) Mutation() *SeatMutation {
 	return su.mutation
+}
+
+// ClearCinema clears the "cinema" edge to the Cinema entity.
+func (su *SeatUpdate) ClearCinema() *SeatUpdate {
+	su.mutation.ClearCinema()
+	return su
+}
+
+// ClearSeatReservations clears all "seat_reservations" edges to the SeatReservation entity.
+func (su *SeatUpdate) ClearSeatReservations() *SeatUpdate {
+	su.mutation.ClearSeatReservations()
+	return su
+}
+
+// RemoveSeatReservationIDs removes the "seat_reservations" edge to SeatReservation entities by IDs.
+func (su *SeatUpdate) RemoveSeatReservationIDs(ids ...int64) *SeatUpdate {
+	su.mutation.RemoveSeatReservationIDs(ids...)
+	return su
+}
+
+// RemoveSeatReservations removes "seat_reservations" edges to SeatReservation entities.
+func (su *SeatUpdate) RemoveSeatReservations(s ...*SeatReservation) *SeatUpdate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.RemoveSeatReservationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -166,6 +229,80 @@ func (su *SeatUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.AddedColumn(); ok {
 		_spec.AddField(seat.FieldColumn, field.TypeInt16, value)
 	}
+	if su.mutation.CinemaCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seat.CinemaTable,
+			Columns: []string{seat.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.CinemaIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seat.CinemaTable,
+			Columns: []string{seat.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.SeatReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seat.SeatReservationsTable,
+			Columns: []string{seat.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedSeatReservationsIDs(); len(nodes) > 0 && !su.mutation.SeatReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seat.SeatReservationsTable,
+			Columns: []string{seat.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.SeatReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seat.SeatReservationsTable,
+			Columns: []string{seat.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(su.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -236,9 +373,70 @@ func (suo *SeatUpdateOne) AddColumn(i int16) *SeatUpdateOne {
 	return suo
 }
 
+// SetCinemaID sets the "cinema" edge to the Cinema entity by ID.
+func (suo *SeatUpdateOne) SetCinemaID(id int64) *SeatUpdateOne {
+	suo.mutation.SetCinemaID(id)
+	return suo
+}
+
+// SetNillableCinemaID sets the "cinema" edge to the Cinema entity by ID if the given value is not nil.
+func (suo *SeatUpdateOne) SetNillableCinemaID(id *int64) *SeatUpdateOne {
+	if id != nil {
+		suo = suo.SetCinemaID(*id)
+	}
+	return suo
+}
+
+// SetCinema sets the "cinema" edge to the Cinema entity.
+func (suo *SeatUpdateOne) SetCinema(c *Cinema) *SeatUpdateOne {
+	return suo.SetCinemaID(c.ID)
+}
+
+// AddSeatReservationIDs adds the "seat_reservations" edge to the SeatReservation entity by IDs.
+func (suo *SeatUpdateOne) AddSeatReservationIDs(ids ...int64) *SeatUpdateOne {
+	suo.mutation.AddSeatReservationIDs(ids...)
+	return suo
+}
+
+// AddSeatReservations adds the "seat_reservations" edges to the SeatReservation entity.
+func (suo *SeatUpdateOne) AddSeatReservations(s ...*SeatReservation) *SeatUpdateOne {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.AddSeatReservationIDs(ids...)
+}
+
 // Mutation returns the SeatMutation object of the builder.
 func (suo *SeatUpdateOne) Mutation() *SeatMutation {
 	return suo.mutation
+}
+
+// ClearCinema clears the "cinema" edge to the Cinema entity.
+func (suo *SeatUpdateOne) ClearCinema() *SeatUpdateOne {
+	suo.mutation.ClearCinema()
+	return suo
+}
+
+// ClearSeatReservations clears all "seat_reservations" edges to the SeatReservation entity.
+func (suo *SeatUpdateOne) ClearSeatReservations() *SeatUpdateOne {
+	suo.mutation.ClearSeatReservations()
+	return suo
+}
+
+// RemoveSeatReservationIDs removes the "seat_reservations" edge to SeatReservation entities by IDs.
+func (suo *SeatUpdateOne) RemoveSeatReservationIDs(ids ...int64) *SeatUpdateOne {
+	suo.mutation.RemoveSeatReservationIDs(ids...)
+	return suo
+}
+
+// RemoveSeatReservations removes "seat_reservations" edges to SeatReservation entities.
+func (suo *SeatUpdateOne) RemoveSeatReservations(s ...*SeatReservation) *SeatUpdateOne {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.RemoveSeatReservationIDs(ids...)
 }
 
 // Where appends a list predicates to the SeatUpdate builder.
@@ -354,6 +552,80 @@ func (suo *SeatUpdateOne) sqlSave(ctx context.Context) (_node *Seat, err error) 
 	}
 	if value, ok := suo.mutation.AddedColumn(); ok {
 		_spec.AddField(seat.FieldColumn, field.TypeInt16, value)
+	}
+	if suo.mutation.CinemaCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seat.CinemaTable,
+			Columns: []string{seat.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.CinemaIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seat.CinemaTable,
+			Columns: []string{seat.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.SeatReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seat.SeatReservationsTable,
+			Columns: []string{seat.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedSeatReservationsIDs(); len(nodes) > 0 && !suo.mutation.SeatReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seat.SeatReservationsTable,
+			Columns: []string{seat.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.SeatReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seat.SeatReservationsTable,
+			Columns: []string{seat.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(suo.modifiers...)
 	_node = &Seat{config: suo.config}

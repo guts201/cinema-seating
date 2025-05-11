@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -28,8 +29,26 @@ const (
 	FieldStartTime = "start_time"
 	// FieldEndTime holds the string denoting the end_time field in the database.
 	FieldEndTime = "end_time"
+	// EdgeSeat holds the string denoting the seat edge name in mutations.
+	EdgeSeat = "seat"
+	// EdgeScreening holds the string denoting the screening edge name in mutations.
+	EdgeScreening = "screening"
 	// Table holds the table name of the seatreservation in the database.
 	Table = "seat_reservations"
+	// SeatTable is the table that holds the seat relation/edge.
+	SeatTable = "seat_reservations"
+	// SeatInverseTable is the table name for the Seat entity.
+	// It exists in this package in order to avoid circular dependency with the "seat" package.
+	SeatInverseTable = "seats"
+	// SeatColumn is the table column denoting the seat relation/edge.
+	SeatColumn = "seat_seat_reservations"
+	// ScreeningTable is the table that holds the screening relation/edge.
+	ScreeningTable = "seat_reservations"
+	// ScreeningInverseTable is the table name for the Screening entity.
+	// It exists in this package in order to avoid circular dependency with the "screening" package.
+	ScreeningInverseTable = "screenings"
+	// ScreeningColumn is the table column denoting the screening relation/edge.
+	ScreeningColumn = "screening_seat_reservations"
 )
 
 // Columns holds all SQL columns for seatreservation fields.
@@ -44,10 +63,22 @@ var Columns = []string{
 	FieldEndTime,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "seat_reservations"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"screening_seat_reservations",
+	"seat_seat_reservations",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -137,4 +168,32 @@ func ByStartTime(opts ...sql.OrderTermOption) OrderOption {
 // ByEndTime orders the results by the end_time field.
 func ByEndTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEndTime, opts...).ToFunc()
+}
+
+// BySeatField orders the results by seat field.
+func BySeatField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeatStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByScreeningField orders the results by screening field.
+func ByScreeningField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newScreeningStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newSeatStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeatInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SeatTable, SeatColumn),
+	)
+}
+func newScreeningStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ScreeningInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ScreeningTable, ScreeningColumn),
+	)
 }

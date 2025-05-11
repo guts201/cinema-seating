@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -19,5 +21,12 @@ func (Seat) Fields() []ent.Field {
 func (Seat) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		Base{},
+	}
+}
+
+func (Seat) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("cinema", Cinema.Type).Ref("seats").Unique(),
+		edge.To("seat_reservations", SeatReservation.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

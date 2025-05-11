@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -20,5 +22,11 @@ func (Movie) Fields() []ent.Field {
 func (Movie) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		Base{},
+	}
+}
+
+func (Movie) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("screenings", Screening.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

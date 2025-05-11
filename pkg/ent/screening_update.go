@@ -3,8 +3,11 @@
 package ent
 
 import (
+	"cinema/pkg/ent/cinema"
+	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/predicate"
 	"cinema/pkg/ent/screening"
+	"cinema/pkg/ent/seatreservation"
 	"context"
 	"errors"
 	"fmt"
@@ -84,9 +87,95 @@ func (su *ScreeningUpdate) AddMinDistance(i int32) *ScreeningUpdate {
 	return su
 }
 
+// SetMovieID sets the "movie" edge to the Movie entity by ID.
+func (su *ScreeningUpdate) SetMovieID(id int64) *ScreeningUpdate {
+	su.mutation.SetMovieID(id)
+	return su
+}
+
+// SetNillableMovieID sets the "movie" edge to the Movie entity by ID if the given value is not nil.
+func (su *ScreeningUpdate) SetNillableMovieID(id *int64) *ScreeningUpdate {
+	if id != nil {
+		su = su.SetMovieID(*id)
+	}
+	return su
+}
+
+// SetMovie sets the "movie" edge to the Movie entity.
+func (su *ScreeningUpdate) SetMovie(m *Movie) *ScreeningUpdate {
+	return su.SetMovieID(m.ID)
+}
+
+// SetCinemaID sets the "cinema" edge to the Cinema entity by ID.
+func (su *ScreeningUpdate) SetCinemaID(id int64) *ScreeningUpdate {
+	su.mutation.SetCinemaID(id)
+	return su
+}
+
+// SetNillableCinemaID sets the "cinema" edge to the Cinema entity by ID if the given value is not nil.
+func (su *ScreeningUpdate) SetNillableCinemaID(id *int64) *ScreeningUpdate {
+	if id != nil {
+		su = su.SetCinemaID(*id)
+	}
+	return su
+}
+
+// SetCinema sets the "cinema" edge to the Cinema entity.
+func (su *ScreeningUpdate) SetCinema(c *Cinema) *ScreeningUpdate {
+	return su.SetCinemaID(c.ID)
+}
+
+// AddSeatReservationIDs adds the "seat_reservations" edge to the SeatReservation entity by IDs.
+func (su *ScreeningUpdate) AddSeatReservationIDs(ids ...int64) *ScreeningUpdate {
+	su.mutation.AddSeatReservationIDs(ids...)
+	return su
+}
+
+// AddSeatReservations adds the "seat_reservations" edges to the SeatReservation entity.
+func (su *ScreeningUpdate) AddSeatReservations(s ...*SeatReservation) *ScreeningUpdate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.AddSeatReservationIDs(ids...)
+}
+
 // Mutation returns the ScreeningMutation object of the builder.
 func (su *ScreeningUpdate) Mutation() *ScreeningMutation {
 	return su.mutation
+}
+
+// ClearMovie clears the "movie" edge to the Movie entity.
+func (su *ScreeningUpdate) ClearMovie() *ScreeningUpdate {
+	su.mutation.ClearMovie()
+	return su
+}
+
+// ClearCinema clears the "cinema" edge to the Cinema entity.
+func (su *ScreeningUpdate) ClearCinema() *ScreeningUpdate {
+	su.mutation.ClearCinema()
+	return su
+}
+
+// ClearSeatReservations clears all "seat_reservations" edges to the SeatReservation entity.
+func (su *ScreeningUpdate) ClearSeatReservations() *ScreeningUpdate {
+	su.mutation.ClearSeatReservations()
+	return su
+}
+
+// RemoveSeatReservationIDs removes the "seat_reservations" edge to SeatReservation entities by IDs.
+func (su *ScreeningUpdate) RemoveSeatReservationIDs(ids ...int64) *ScreeningUpdate {
+	su.mutation.RemoveSeatReservationIDs(ids...)
+	return su
+}
+
+// RemoveSeatReservations removes "seat_reservations" edges to SeatReservation entities.
+func (su *ScreeningUpdate) RemoveSeatReservations(s ...*SeatReservation) *ScreeningUpdate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.RemoveSeatReservationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -173,6 +262,109 @@ func (su *ScreeningUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.AddedMinDistance(); ok {
 		_spec.AddField(screening.FieldMinDistance, field.TypeInt32, value)
 	}
+	if su.mutation.MovieCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.MovieTable,
+			Columns: []string{screening.MovieColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(movie.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.MovieIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.MovieTable,
+			Columns: []string{screening.MovieColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(movie.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.CinemaCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.CinemaTable,
+			Columns: []string{screening.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.CinemaIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.CinemaTable,
+			Columns: []string{screening.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.SeatReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   screening.SeatReservationsTable,
+			Columns: []string{screening.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedSeatReservationsIDs(); len(nodes) > 0 && !su.mutation.SeatReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   screening.SeatReservationsTable,
+			Columns: []string{screening.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.SeatReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   screening.SeatReservationsTable,
+			Columns: []string{screening.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(su.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -250,9 +442,95 @@ func (suo *ScreeningUpdateOne) AddMinDistance(i int32) *ScreeningUpdateOne {
 	return suo
 }
 
+// SetMovieID sets the "movie" edge to the Movie entity by ID.
+func (suo *ScreeningUpdateOne) SetMovieID(id int64) *ScreeningUpdateOne {
+	suo.mutation.SetMovieID(id)
+	return suo
+}
+
+// SetNillableMovieID sets the "movie" edge to the Movie entity by ID if the given value is not nil.
+func (suo *ScreeningUpdateOne) SetNillableMovieID(id *int64) *ScreeningUpdateOne {
+	if id != nil {
+		suo = suo.SetMovieID(*id)
+	}
+	return suo
+}
+
+// SetMovie sets the "movie" edge to the Movie entity.
+func (suo *ScreeningUpdateOne) SetMovie(m *Movie) *ScreeningUpdateOne {
+	return suo.SetMovieID(m.ID)
+}
+
+// SetCinemaID sets the "cinema" edge to the Cinema entity by ID.
+func (suo *ScreeningUpdateOne) SetCinemaID(id int64) *ScreeningUpdateOne {
+	suo.mutation.SetCinemaID(id)
+	return suo
+}
+
+// SetNillableCinemaID sets the "cinema" edge to the Cinema entity by ID if the given value is not nil.
+func (suo *ScreeningUpdateOne) SetNillableCinemaID(id *int64) *ScreeningUpdateOne {
+	if id != nil {
+		suo = suo.SetCinemaID(*id)
+	}
+	return suo
+}
+
+// SetCinema sets the "cinema" edge to the Cinema entity.
+func (suo *ScreeningUpdateOne) SetCinema(c *Cinema) *ScreeningUpdateOne {
+	return suo.SetCinemaID(c.ID)
+}
+
+// AddSeatReservationIDs adds the "seat_reservations" edge to the SeatReservation entity by IDs.
+func (suo *ScreeningUpdateOne) AddSeatReservationIDs(ids ...int64) *ScreeningUpdateOne {
+	suo.mutation.AddSeatReservationIDs(ids...)
+	return suo
+}
+
+// AddSeatReservations adds the "seat_reservations" edges to the SeatReservation entity.
+func (suo *ScreeningUpdateOne) AddSeatReservations(s ...*SeatReservation) *ScreeningUpdateOne {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.AddSeatReservationIDs(ids...)
+}
+
 // Mutation returns the ScreeningMutation object of the builder.
 func (suo *ScreeningUpdateOne) Mutation() *ScreeningMutation {
 	return suo.mutation
+}
+
+// ClearMovie clears the "movie" edge to the Movie entity.
+func (suo *ScreeningUpdateOne) ClearMovie() *ScreeningUpdateOne {
+	suo.mutation.ClearMovie()
+	return suo
+}
+
+// ClearCinema clears the "cinema" edge to the Cinema entity.
+func (suo *ScreeningUpdateOne) ClearCinema() *ScreeningUpdateOne {
+	suo.mutation.ClearCinema()
+	return suo
+}
+
+// ClearSeatReservations clears all "seat_reservations" edges to the SeatReservation entity.
+func (suo *ScreeningUpdateOne) ClearSeatReservations() *ScreeningUpdateOne {
+	suo.mutation.ClearSeatReservations()
+	return suo
+}
+
+// RemoveSeatReservationIDs removes the "seat_reservations" edge to SeatReservation entities by IDs.
+func (suo *ScreeningUpdateOne) RemoveSeatReservationIDs(ids ...int64) *ScreeningUpdateOne {
+	suo.mutation.RemoveSeatReservationIDs(ids...)
+	return suo
+}
+
+// RemoveSeatReservations removes "seat_reservations" edges to SeatReservation entities.
+func (suo *ScreeningUpdateOne) RemoveSeatReservations(s ...*SeatReservation) *ScreeningUpdateOne {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.RemoveSeatReservationIDs(ids...)
 }
 
 // Where appends a list predicates to the ScreeningUpdate builder.
@@ -368,6 +646,109 @@ func (suo *ScreeningUpdateOne) sqlSave(ctx context.Context) (_node *Screening, e
 	}
 	if value, ok := suo.mutation.AddedMinDistance(); ok {
 		_spec.AddField(screening.FieldMinDistance, field.TypeInt32, value)
+	}
+	if suo.mutation.MovieCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.MovieTable,
+			Columns: []string{screening.MovieColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(movie.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.MovieIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.MovieTable,
+			Columns: []string{screening.MovieColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(movie.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.CinemaCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.CinemaTable,
+			Columns: []string{screening.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.CinemaIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.CinemaTable,
+			Columns: []string{screening.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.SeatReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   screening.SeatReservationsTable,
+			Columns: []string{screening.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedSeatReservationsIDs(); len(nodes) > 0 && !suo.mutation.SeatReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   screening.SeatReservationsTable,
+			Columns: []string{screening.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.SeatReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   screening.SeatReservationsTable,
+			Columns: []string{screening.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(suo.modifiers...)
 	_node = &Screening{config: suo.config}

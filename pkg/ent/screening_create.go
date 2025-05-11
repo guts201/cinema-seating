@@ -3,7 +3,10 @@
 package ent
 
 import (
+	"cinema/pkg/ent/cinema"
+	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/screening"
+	"cinema/pkg/ent/seatreservation"
 	"context"
 	"errors"
 	"fmt"
@@ -72,6 +75,59 @@ func (sc *ScreeningCreate) SetMinDistance(i int32) *ScreeningCreate {
 func (sc *ScreeningCreate) SetID(i int64) *ScreeningCreate {
 	sc.mutation.SetID(i)
 	return sc
+}
+
+// SetMovieID sets the "movie" edge to the Movie entity by ID.
+func (sc *ScreeningCreate) SetMovieID(id int64) *ScreeningCreate {
+	sc.mutation.SetMovieID(id)
+	return sc
+}
+
+// SetNillableMovieID sets the "movie" edge to the Movie entity by ID if the given value is not nil.
+func (sc *ScreeningCreate) SetNillableMovieID(id *int64) *ScreeningCreate {
+	if id != nil {
+		sc = sc.SetMovieID(*id)
+	}
+	return sc
+}
+
+// SetMovie sets the "movie" edge to the Movie entity.
+func (sc *ScreeningCreate) SetMovie(m *Movie) *ScreeningCreate {
+	return sc.SetMovieID(m.ID)
+}
+
+// SetCinemaID sets the "cinema" edge to the Cinema entity by ID.
+func (sc *ScreeningCreate) SetCinemaID(id int64) *ScreeningCreate {
+	sc.mutation.SetCinemaID(id)
+	return sc
+}
+
+// SetNillableCinemaID sets the "cinema" edge to the Cinema entity by ID if the given value is not nil.
+func (sc *ScreeningCreate) SetNillableCinemaID(id *int64) *ScreeningCreate {
+	if id != nil {
+		sc = sc.SetCinemaID(*id)
+	}
+	return sc
+}
+
+// SetCinema sets the "cinema" edge to the Cinema entity.
+func (sc *ScreeningCreate) SetCinema(c *Cinema) *ScreeningCreate {
+	return sc.SetCinemaID(c.ID)
+}
+
+// AddSeatReservationIDs adds the "seat_reservations" edge to the SeatReservation entity by IDs.
+func (sc *ScreeningCreate) AddSeatReservationIDs(ids ...int64) *ScreeningCreate {
+	sc.mutation.AddSeatReservationIDs(ids...)
+	return sc
+}
+
+// AddSeatReservations adds the "seat_reservations" edges to the SeatReservation entity.
+func (sc *ScreeningCreate) AddSeatReservations(s ...*SeatReservation) *ScreeningCreate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return sc.AddSeatReservationIDs(ids...)
 }
 
 // Mutation returns the ScreeningMutation object of the builder.
@@ -198,6 +254,56 @@ func (sc *ScreeningCreate) createSpec() (*Screening, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.MinDistance(); ok {
 		_spec.SetField(screening.FieldMinDistance, field.TypeInt32, value)
 		_node.MinDistance = value
+	}
+	if nodes := sc.mutation.MovieIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.MovieTable,
+			Columns: []string{screening.MovieColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(movie.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.movie_screenings = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.CinemaIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   screening.CinemaTable,
+			Columns: []string{screening.CinemaColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.cinema_screenings = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.SeatReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   screening.SeatReservationsTable,
+			Columns: []string{screening.SeatReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seatreservation.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

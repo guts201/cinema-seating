@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -257,6 +258,29 @@ func DurationLT(v uint64) predicate.Movie {
 // DurationLTE applies the LTE predicate on the "duration" field.
 func DurationLTE(v uint64) predicate.Movie {
 	return predicate.Movie(sql.FieldLTE(FieldDuration, v))
+}
+
+// HasScreenings applies the HasEdge predicate on the "screenings" edge.
+func HasScreenings() predicate.Movie {
+	return predicate.Movie(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ScreeningsTable, ScreeningsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasScreeningsWith applies the HasEdge predicate on the "screenings" edge with a given conditions (other predicates).
+func HasScreeningsWith(preds ...predicate.Screening) predicate.Movie {
+	return predicate.Movie(func(s *sql.Selector) {
+		step := newScreeningsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

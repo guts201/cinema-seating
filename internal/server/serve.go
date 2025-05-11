@@ -5,7 +5,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	pb0 "cinema/api"
-	"cinema/internal/server/cinema"
+	cinema "cinema/internal/server/clientcinema"
 	config "cinema/pkg/config"
 )
 
@@ -14,7 +14,7 @@ func Serve(cfg *config.Config) {
 	service := newService(cfg, []mykit.Option{}...)
 
 	server := service.Server()
-	pb0.RegisterCinemaServer(server, cinema.NewServer())
+	pb0.RegisterClientCinemaServer(server, cinema.NewServer())
 
 	// Register reflection service on gRPC server.
 	// Please remove if you it's not necessary for your service

@@ -34,19 +34,19 @@ func init() {
 	// cinemaDescNumRow is the schema descriptor for num_row field.
 	cinemaDescNumRow := cinemaFields[0].Descriptor()
 	// cinema.NumRowValidator is a validator for the "num_row" field. It is called by the builders before save.
-	cinema.NumRowValidator = cinemaDescNumRow.Validators[0].(func(int64) error)
+	cinema.NumRowValidator = cinemaDescNumRow.Validators[0].(func(uint32) error)
 	// cinemaDescNumColumn is the schema descriptor for num_column field.
 	cinemaDescNumColumn := cinemaFields[1].Descriptor()
 	// cinema.NumColumnValidator is a validator for the "num_column" field. It is called by the builders before save.
-	cinema.NumColumnValidator = cinemaDescNumColumn.Validators[0].(func(int64) error)
+	cinema.NumColumnValidator = cinemaDescNumColumn.Validators[0].(func(uint32) error)
 	// cinemaDescName is the schema descriptor for name field.
 	cinemaDescName := cinemaFields[2].Descriptor()
 	// cinema.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	cinema.NameValidator = cinemaDescName.Validators[0].(func(string) error)
-	// cinemaDescAddress is the schema descriptor for address field.
-	cinemaDescAddress := cinemaFields[3].Descriptor()
-	// cinema.AddressValidator is a validator for the "address" field. It is called by the builders before save.
-	cinema.AddressValidator = cinemaDescAddress.Validators[0].(func(string) error)
+	// cinemaDescMinDistance is the schema descriptor for min_distance field.
+	cinemaDescMinDistance := cinemaFields[3].Descriptor()
+	// cinema.MinDistanceValidator is a validator for the "min_distance" field. It is called by the builders before save.
+	cinema.MinDistanceValidator = cinemaDescMinDistance.Validators[0].(func(uint32) error)
 	movieMixin := schema.Movie{}.Mixin()
 	movieMixinFields0 := movieMixin[0].Fields()
 	_ = movieMixinFields0

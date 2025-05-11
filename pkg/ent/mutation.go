@@ -39,21 +39,28 @@ const (
 // CinemaMutation represents an operation that mutates the Cinema nodes in the graph.
 type CinemaMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int64
-	created_at    *time.Time
-	updated_at    *time.Time
-	num_row       *int64
-	addnum_row    *int64
-	num_column    *int64
-	addnum_column *int64
-	name          *string
-	address       *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Cinema, error)
-	predicates    []predicate.Cinema
+	op                Op
+	typ               string
+	id                *int64
+	created_at        *time.Time
+	updated_at        *time.Time
+	num_row           *uint32
+	addnum_row        *int32
+	num_column        *uint32
+	addnum_column     *int32
+	name              *string
+	min_distance      *uint32
+	addmin_distance   *int32
+	clearedFields     map[string]struct{}
+	seats             map[int64]struct{}
+	removedseats      map[int64]struct{}
+	clearedseats      bool
+	screenings        map[int64]struct{}
+	removedscreenings map[int64]struct{}
+	clearedscreenings bool
+	done              bool
+	oldValue          func(context.Context) (*Cinema, error)
+	predicates        []predicate.Cinema
 }
 
 var _ ent.Mutation = (*CinemaMutation)(nil)
@@ -233,13 +240,13 @@ func (m *CinemaMutation) ResetUpdatedAt() {
 }
 
 // SetNumRow sets the "num_row" field.
-func (m *CinemaMutation) SetNumRow(i int64) {
-	m.num_row = &i
+func (m *CinemaMutation) SetNumRow(u uint32) {
+	m.num_row = &u
 	m.addnum_row = nil
 }
 
 // NumRow returns the value of the "num_row" field in the mutation.
-func (m *CinemaMutation) NumRow() (r int64, exists bool) {
+func (m *CinemaMutation) NumRow() (r uint32, exists bool) {
 	v := m.num_row
 	if v == nil {
 		return
@@ -250,7 +257,7 @@ func (m *CinemaMutation) NumRow() (r int64, exists bool) {
 // OldNumRow returns the old "num_row" field's value of the Cinema entity.
 // If the Cinema object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CinemaMutation) OldNumRow(ctx context.Context) (v int64, err error) {
+func (m *CinemaMutation) OldNumRow(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNumRow is only allowed on UpdateOne operations")
 	}
@@ -264,17 +271,17 @@ func (m *CinemaMutation) OldNumRow(ctx context.Context) (v int64, err error) {
 	return oldValue.NumRow, nil
 }
 
-// AddNumRow adds i to the "num_row" field.
-func (m *CinemaMutation) AddNumRow(i int64) {
+// AddNumRow adds u to the "num_row" field.
+func (m *CinemaMutation) AddNumRow(u int32) {
 	if m.addnum_row != nil {
-		*m.addnum_row += i
+		*m.addnum_row += u
 	} else {
-		m.addnum_row = &i
+		m.addnum_row = &u
 	}
 }
 
 // AddedNumRow returns the value that was added to the "num_row" field in this mutation.
-func (m *CinemaMutation) AddedNumRow() (r int64, exists bool) {
+func (m *CinemaMutation) AddedNumRow() (r int32, exists bool) {
 	v := m.addnum_row
 	if v == nil {
 		return
@@ -289,13 +296,13 @@ func (m *CinemaMutation) ResetNumRow() {
 }
 
 // SetNumColumn sets the "num_column" field.
-func (m *CinemaMutation) SetNumColumn(i int64) {
-	m.num_column = &i
+func (m *CinemaMutation) SetNumColumn(u uint32) {
+	m.num_column = &u
 	m.addnum_column = nil
 }
 
 // NumColumn returns the value of the "num_column" field in the mutation.
-func (m *CinemaMutation) NumColumn() (r int64, exists bool) {
+func (m *CinemaMutation) NumColumn() (r uint32, exists bool) {
 	v := m.num_column
 	if v == nil {
 		return
@@ -306,7 +313,7 @@ func (m *CinemaMutation) NumColumn() (r int64, exists bool) {
 // OldNumColumn returns the old "num_column" field's value of the Cinema entity.
 // If the Cinema object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CinemaMutation) OldNumColumn(ctx context.Context) (v int64, err error) {
+func (m *CinemaMutation) OldNumColumn(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNumColumn is only allowed on UpdateOne operations")
 	}
@@ -320,17 +327,17 @@ func (m *CinemaMutation) OldNumColumn(ctx context.Context) (v int64, err error) 
 	return oldValue.NumColumn, nil
 }
 
-// AddNumColumn adds i to the "num_column" field.
-func (m *CinemaMutation) AddNumColumn(i int64) {
+// AddNumColumn adds u to the "num_column" field.
+func (m *CinemaMutation) AddNumColumn(u int32) {
 	if m.addnum_column != nil {
-		*m.addnum_column += i
+		*m.addnum_column += u
 	} else {
-		m.addnum_column = &i
+		m.addnum_column = &u
 	}
 }
 
 // AddedNumColumn returns the value that was added to the "num_column" field in this mutation.
-func (m *CinemaMutation) AddedNumColumn() (r int64, exists bool) {
+func (m *CinemaMutation) AddedNumColumn() (r int32, exists bool) {
 	v := m.addnum_column
 	if v == nil {
 		return
@@ -380,40 +387,168 @@ func (m *CinemaMutation) ResetName() {
 	m.name = nil
 }
 
-// SetAddress sets the "address" field.
-func (m *CinemaMutation) SetAddress(s string) {
-	m.address = &s
+// SetMinDistance sets the "min_distance" field.
+func (m *CinemaMutation) SetMinDistance(u uint32) {
+	m.min_distance = &u
+	m.addmin_distance = nil
 }
 
-// Address returns the value of the "address" field in the mutation.
-func (m *CinemaMutation) Address() (r string, exists bool) {
-	v := m.address
+// MinDistance returns the value of the "min_distance" field in the mutation.
+func (m *CinemaMutation) MinDistance() (r uint32, exists bool) {
+	v := m.min_distance
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldAddress returns the old "address" field's value of the Cinema entity.
+// OldMinDistance returns the old "min_distance" field's value of the Cinema entity.
 // If the Cinema object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CinemaMutation) OldAddress(ctx context.Context) (v string, err error) {
+func (m *CinemaMutation) OldMinDistance(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAddress is only allowed on UpdateOne operations")
+		return v, errors.New("OldMinDistance is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAddress requires an ID field in the mutation")
+		return v, errors.New("OldMinDistance requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAddress: %w", err)
+		return v, fmt.Errorf("querying old value for OldMinDistance: %w", err)
 	}
-	return oldValue.Address, nil
+	return oldValue.MinDistance, nil
 }
 
-// ResetAddress resets all changes to the "address" field.
-func (m *CinemaMutation) ResetAddress() {
-	m.address = nil
+// AddMinDistance adds u to the "min_distance" field.
+func (m *CinemaMutation) AddMinDistance(u int32) {
+	if m.addmin_distance != nil {
+		*m.addmin_distance += u
+	} else {
+		m.addmin_distance = &u
+	}
+}
+
+// AddedMinDistance returns the value that was added to the "min_distance" field in this mutation.
+func (m *CinemaMutation) AddedMinDistance() (r int32, exists bool) {
+	v := m.addmin_distance
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMinDistance resets all changes to the "min_distance" field.
+func (m *CinemaMutation) ResetMinDistance() {
+	m.min_distance = nil
+	m.addmin_distance = nil
+}
+
+// AddSeatIDs adds the "seats" edge to the Seat entity by ids.
+func (m *CinemaMutation) AddSeatIDs(ids ...int64) {
+	if m.seats == nil {
+		m.seats = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.seats[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeats clears the "seats" edge to the Seat entity.
+func (m *CinemaMutation) ClearSeats() {
+	m.clearedseats = true
+}
+
+// SeatsCleared reports if the "seats" edge to the Seat entity was cleared.
+func (m *CinemaMutation) SeatsCleared() bool {
+	return m.clearedseats
+}
+
+// RemoveSeatIDs removes the "seats" edge to the Seat entity by IDs.
+func (m *CinemaMutation) RemoveSeatIDs(ids ...int64) {
+	if m.removedseats == nil {
+		m.removedseats = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.seats, ids[i])
+		m.removedseats[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeats returns the removed IDs of the "seats" edge to the Seat entity.
+func (m *CinemaMutation) RemovedSeatsIDs() (ids []int64) {
+	for id := range m.removedseats {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeatsIDs returns the "seats" edge IDs in the mutation.
+func (m *CinemaMutation) SeatsIDs() (ids []int64) {
+	for id := range m.seats {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeats resets all changes to the "seats" edge.
+func (m *CinemaMutation) ResetSeats() {
+	m.seats = nil
+	m.clearedseats = false
+	m.removedseats = nil
+}
+
+// AddScreeningIDs adds the "screenings" edge to the Screening entity by ids.
+func (m *CinemaMutation) AddScreeningIDs(ids ...int64) {
+	if m.screenings == nil {
+		m.screenings = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.screenings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearScreenings clears the "screenings" edge to the Screening entity.
+func (m *CinemaMutation) ClearScreenings() {
+	m.clearedscreenings = true
+}
+
+// ScreeningsCleared reports if the "screenings" edge to the Screening entity was cleared.
+func (m *CinemaMutation) ScreeningsCleared() bool {
+	return m.clearedscreenings
+}
+
+// RemoveScreeningIDs removes the "screenings" edge to the Screening entity by IDs.
+func (m *CinemaMutation) RemoveScreeningIDs(ids ...int64) {
+	if m.removedscreenings == nil {
+		m.removedscreenings = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.screenings, ids[i])
+		m.removedscreenings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedScreenings returns the removed IDs of the "screenings" edge to the Screening entity.
+func (m *CinemaMutation) RemovedScreeningsIDs() (ids []int64) {
+	for id := range m.removedscreenings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ScreeningsIDs returns the "screenings" edge IDs in the mutation.
+func (m *CinemaMutation) ScreeningsIDs() (ids []int64) {
+	for id := range m.screenings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetScreenings resets all changes to the "screenings" edge.
+func (m *CinemaMutation) ResetScreenings() {
+	m.screenings = nil
+	m.clearedscreenings = false
+	m.removedscreenings = nil
 }
 
 // Where appends a list predicates to the CinemaMutation builder.
@@ -466,8 +601,8 @@ func (m *CinemaMutation) Fields() []string {
 	if m.name != nil {
 		fields = append(fields, cinema.FieldName)
 	}
-	if m.address != nil {
-		fields = append(fields, cinema.FieldAddress)
+	if m.min_distance != nil {
+		fields = append(fields, cinema.FieldMinDistance)
 	}
 	return fields
 }
@@ -487,8 +622,8 @@ func (m *CinemaMutation) Field(name string) (ent.Value, bool) {
 		return m.NumColumn()
 	case cinema.FieldName:
 		return m.Name()
-	case cinema.FieldAddress:
-		return m.Address()
+	case cinema.FieldMinDistance:
+		return m.MinDistance()
 	}
 	return nil, false
 }
@@ -508,8 +643,8 @@ func (m *CinemaMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldNumColumn(ctx)
 	case cinema.FieldName:
 		return m.OldName(ctx)
-	case cinema.FieldAddress:
-		return m.OldAddress(ctx)
+	case cinema.FieldMinDistance:
+		return m.OldMinDistance(ctx)
 	}
 	return nil, fmt.Errorf("unknown Cinema field %s", name)
 }
@@ -534,14 +669,14 @@ func (m *CinemaMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdatedAt(v)
 		return nil
 	case cinema.FieldNumRow:
-		v, ok := value.(int64)
+		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNumRow(v)
 		return nil
 	case cinema.FieldNumColumn:
-		v, ok := value.(int64)
+		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -554,12 +689,12 @@ func (m *CinemaMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetName(v)
 		return nil
-	case cinema.FieldAddress:
-		v, ok := value.(string)
+	case cinema.FieldMinDistance:
+		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetAddress(v)
+		m.SetMinDistance(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Cinema field %s", name)
@@ -575,6 +710,9 @@ func (m *CinemaMutation) AddedFields() []string {
 	if m.addnum_column != nil {
 		fields = append(fields, cinema.FieldNumColumn)
 	}
+	if m.addmin_distance != nil {
+		fields = append(fields, cinema.FieldMinDistance)
+	}
 	return fields
 }
 
@@ -587,6 +725,8 @@ func (m *CinemaMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedNumRow()
 	case cinema.FieldNumColumn:
 		return m.AddedNumColumn()
+	case cinema.FieldMinDistance:
+		return m.AddedMinDistance()
 	}
 	return nil, false
 }
@@ -597,18 +737,25 @@ func (m *CinemaMutation) AddedField(name string) (ent.Value, bool) {
 func (m *CinemaMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case cinema.FieldNumRow:
-		v, ok := value.(int64)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddNumRow(v)
 		return nil
 	case cinema.FieldNumColumn:
-		v, ok := value.(int64)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddNumColumn(v)
+		return nil
+	case cinema.FieldMinDistance:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMinDistance(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Cinema numeric field %s", name)
@@ -652,8 +799,8 @@ func (m *CinemaMutation) ResetField(name string) error {
 	case cinema.FieldName:
 		m.ResetName()
 		return nil
-	case cinema.FieldAddress:
-		m.ResetAddress()
+	case cinema.FieldMinDistance:
+		m.ResetMinDistance()
 		return nil
 	}
 	return fmt.Errorf("unknown Cinema field %s", name)
@@ -661,67 +808,132 @@ func (m *CinemaMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CinemaMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.seats != nil {
+		edges = append(edges, cinema.EdgeSeats)
+	}
+	if m.screenings != nil {
+		edges = append(edges, cinema.EdgeScreenings)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *CinemaMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case cinema.EdgeSeats:
+		ids := make([]ent.Value, 0, len(m.seats))
+		for id := range m.seats {
+			ids = append(ids, id)
+		}
+		return ids
+	case cinema.EdgeScreenings:
+		ids := make([]ent.Value, 0, len(m.screenings))
+		for id := range m.screenings {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CinemaMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removedseats != nil {
+		edges = append(edges, cinema.EdgeSeats)
+	}
+	if m.removedscreenings != nil {
+		edges = append(edges, cinema.EdgeScreenings)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CinemaMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case cinema.EdgeSeats:
+		ids := make([]ent.Value, 0, len(m.removedseats))
+		for id := range m.removedseats {
+			ids = append(ids, id)
+		}
+		return ids
+	case cinema.EdgeScreenings:
+		ids := make([]ent.Value, 0, len(m.removedscreenings))
+		for id := range m.removedscreenings {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CinemaMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedseats {
+		edges = append(edges, cinema.EdgeSeats)
+	}
+	if m.clearedscreenings {
+		edges = append(edges, cinema.EdgeScreenings)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *CinemaMutation) EdgeCleared(name string) bool {
+	switch name {
+	case cinema.EdgeSeats:
+		return m.clearedseats
+	case cinema.EdgeScreenings:
+		return m.clearedscreenings
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *CinemaMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Cinema unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *CinemaMutation) ResetEdge(name string) error {
+	switch name {
+	case cinema.EdgeSeats:
+		m.ResetSeats()
+		return nil
+	case cinema.EdgeScreenings:
+		m.ResetScreenings()
+		return nil
+	}
 	return fmt.Errorf("unknown Cinema edge %s", name)
 }
 
 // MovieMutation represents an operation that mutates the Movie nodes in the graph.
 type MovieMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int64
-	created_at    *time.Time
-	updated_at    *time.Time
-	title         *string
-	duration      *uint64
-	addduration   *int64
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Movie, error)
-	predicates    []predicate.Movie
+	op                Op
+	typ               string
+	id                *int64
+	created_at        *time.Time
+	updated_at        *time.Time
+	title             *string
+	duration          *uint64
+	addduration       *int64
+	clearedFields     map[string]struct{}
+	screenings        map[int64]struct{}
+	removedscreenings map[int64]struct{}
+	clearedscreenings bool
+	done              bool
+	oldValue          func(context.Context) (*Movie, error)
+	predicates        []predicate.Movie
 }
 
 var _ ent.Mutation = (*MovieMutation)(nil)
@@ -992,6 +1204,60 @@ func (m *MovieMutation) ResetDuration() {
 	m.addduration = nil
 }
 
+// AddScreeningIDs adds the "screenings" edge to the Screening entity by ids.
+func (m *MovieMutation) AddScreeningIDs(ids ...int64) {
+	if m.screenings == nil {
+		m.screenings = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.screenings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearScreenings clears the "screenings" edge to the Screening entity.
+func (m *MovieMutation) ClearScreenings() {
+	m.clearedscreenings = true
+}
+
+// ScreeningsCleared reports if the "screenings" edge to the Screening entity was cleared.
+func (m *MovieMutation) ScreeningsCleared() bool {
+	return m.clearedscreenings
+}
+
+// RemoveScreeningIDs removes the "screenings" edge to the Screening entity by IDs.
+func (m *MovieMutation) RemoveScreeningIDs(ids ...int64) {
+	if m.removedscreenings == nil {
+		m.removedscreenings = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.screenings, ids[i])
+		m.removedscreenings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedScreenings returns the removed IDs of the "screenings" edge to the Screening entity.
+func (m *MovieMutation) RemovedScreeningsIDs() (ids []int64) {
+	for id := range m.removedscreenings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ScreeningsIDs returns the "screenings" edge IDs in the mutation.
+func (m *MovieMutation) ScreeningsIDs() (ids []int64) {
+	for id := range m.screenings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetScreenings resets all changes to the "screenings" edge.
+func (m *MovieMutation) ResetScreenings() {
+	m.screenings = nil
+	m.clearedscreenings = false
+	m.removedscreenings = nil
+}
+
 // Where appends a list predicates to the MovieMutation builder.
 func (m *MovieMutation) Where(ps ...predicate.Movie) {
 	m.predicates = append(m.predicates, ps...)
@@ -1191,68 +1457,111 @@ func (m *MovieMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MovieMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.screenings != nil {
+		edges = append(edges, movie.EdgeScreenings)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *MovieMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case movie.EdgeScreenings:
+		ids := make([]ent.Value, 0, len(m.screenings))
+		for id := range m.screenings {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MovieMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedscreenings != nil {
+		edges = append(edges, movie.EdgeScreenings)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *MovieMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case movie.EdgeScreenings:
+		ids := make([]ent.Value, 0, len(m.removedscreenings))
+		for id := range m.removedscreenings {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MovieMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedscreenings {
+		edges = append(edges, movie.EdgeScreenings)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *MovieMutation) EdgeCleared(name string) bool {
+	switch name {
+	case movie.EdgeScreenings:
+		return m.clearedscreenings
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *MovieMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Movie unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *MovieMutation) ResetEdge(name string) error {
+	switch name {
+	case movie.EdgeScreenings:
+		m.ResetScreenings()
+		return nil
+	}
 	return fmt.Errorf("unknown Movie edge %s", name)
 }
 
 // ScreeningMutation represents an operation that mutates the Screening nodes in the graph.
 type ScreeningMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int64
-	created_at      *time.Time
-	updated_at      *time.Time
-	title           *string
-	start_time      *time.Time
-	min_distance    *int32
-	addmin_distance *int32
-	clearedFields   map[string]struct{}
-	done            bool
-	oldValue        func(context.Context) (*Screening, error)
-	predicates      []predicate.Screening
+	op                       Op
+	typ                      string
+	id                       *int64
+	created_at               *time.Time
+	updated_at               *time.Time
+	title                    *string
+	start_time               *time.Time
+	min_distance             *int32
+	addmin_distance          *int32
+	clearedFields            map[string]struct{}
+	movie                    *int64
+	clearedmovie             bool
+	cinema                   *int64
+	clearedcinema            bool
+	seat_reservations        map[int64]struct{}
+	removedseat_reservations map[int64]struct{}
+	clearedseat_reservations bool
+	done                     bool
+	oldValue                 func(context.Context) (*Screening, error)
+	predicates               []predicate.Screening
 }
 
 var _ ent.Mutation = (*ScreeningMutation)(nil)
@@ -1559,6 +1868,138 @@ func (m *ScreeningMutation) ResetMinDistance() {
 	m.addmin_distance = nil
 }
 
+// SetMovieID sets the "movie" edge to the Movie entity by id.
+func (m *ScreeningMutation) SetMovieID(id int64) {
+	m.movie = &id
+}
+
+// ClearMovie clears the "movie" edge to the Movie entity.
+func (m *ScreeningMutation) ClearMovie() {
+	m.clearedmovie = true
+}
+
+// MovieCleared reports if the "movie" edge to the Movie entity was cleared.
+func (m *ScreeningMutation) MovieCleared() bool {
+	return m.clearedmovie
+}
+
+// MovieID returns the "movie" edge ID in the mutation.
+func (m *ScreeningMutation) MovieID() (id int64, exists bool) {
+	if m.movie != nil {
+		return *m.movie, true
+	}
+	return
+}
+
+// MovieIDs returns the "movie" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MovieID instead. It exists only for internal usage by the builders.
+func (m *ScreeningMutation) MovieIDs() (ids []int64) {
+	if id := m.movie; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMovie resets all changes to the "movie" edge.
+func (m *ScreeningMutation) ResetMovie() {
+	m.movie = nil
+	m.clearedmovie = false
+}
+
+// SetCinemaID sets the "cinema" edge to the Cinema entity by id.
+func (m *ScreeningMutation) SetCinemaID(id int64) {
+	m.cinema = &id
+}
+
+// ClearCinema clears the "cinema" edge to the Cinema entity.
+func (m *ScreeningMutation) ClearCinema() {
+	m.clearedcinema = true
+}
+
+// CinemaCleared reports if the "cinema" edge to the Cinema entity was cleared.
+func (m *ScreeningMutation) CinemaCleared() bool {
+	return m.clearedcinema
+}
+
+// CinemaID returns the "cinema" edge ID in the mutation.
+func (m *ScreeningMutation) CinemaID() (id int64, exists bool) {
+	if m.cinema != nil {
+		return *m.cinema, true
+	}
+	return
+}
+
+// CinemaIDs returns the "cinema" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CinemaID instead. It exists only for internal usage by the builders.
+func (m *ScreeningMutation) CinemaIDs() (ids []int64) {
+	if id := m.cinema; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCinema resets all changes to the "cinema" edge.
+func (m *ScreeningMutation) ResetCinema() {
+	m.cinema = nil
+	m.clearedcinema = false
+}
+
+// AddSeatReservationIDs adds the "seat_reservations" edge to the SeatReservation entity by ids.
+func (m *ScreeningMutation) AddSeatReservationIDs(ids ...int64) {
+	if m.seat_reservations == nil {
+		m.seat_reservations = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.seat_reservations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeatReservations clears the "seat_reservations" edge to the SeatReservation entity.
+func (m *ScreeningMutation) ClearSeatReservations() {
+	m.clearedseat_reservations = true
+}
+
+// SeatReservationsCleared reports if the "seat_reservations" edge to the SeatReservation entity was cleared.
+func (m *ScreeningMutation) SeatReservationsCleared() bool {
+	return m.clearedseat_reservations
+}
+
+// RemoveSeatReservationIDs removes the "seat_reservations" edge to the SeatReservation entity by IDs.
+func (m *ScreeningMutation) RemoveSeatReservationIDs(ids ...int64) {
+	if m.removedseat_reservations == nil {
+		m.removedseat_reservations = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.seat_reservations, ids[i])
+		m.removedseat_reservations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeatReservations returns the removed IDs of the "seat_reservations" edge to the SeatReservation entity.
+func (m *ScreeningMutation) RemovedSeatReservationsIDs() (ids []int64) {
+	for id := range m.removedseat_reservations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeatReservationsIDs returns the "seat_reservations" edge IDs in the mutation.
+func (m *ScreeningMutation) SeatReservationsIDs() (ids []int64) {
+	for id := range m.seat_reservations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeatReservations resets all changes to the "seat_reservations" edge.
+func (m *ScreeningMutation) ResetSeatReservations() {
+	m.seat_reservations = nil
+	m.clearedseat_reservations = false
+	m.removedseat_reservations = nil
+}
+
 // Where appends a list predicates to the ScreeningMutation builder.
 func (m *ScreeningMutation) Where(ps ...predicate.Screening) {
 	m.predicates = append(m.predicates, ps...)
@@ -1775,68 +2216,145 @@ func (m *ScreeningMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ScreeningMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 3)
+	if m.movie != nil {
+		edges = append(edges, screening.EdgeMovie)
+	}
+	if m.cinema != nil {
+		edges = append(edges, screening.EdgeCinema)
+	}
+	if m.seat_reservations != nil {
+		edges = append(edges, screening.EdgeSeatReservations)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ScreeningMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case screening.EdgeMovie:
+		if id := m.movie; id != nil {
+			return []ent.Value{*id}
+		}
+	case screening.EdgeCinema:
+		if id := m.cinema; id != nil {
+			return []ent.Value{*id}
+		}
+	case screening.EdgeSeatReservations:
+		ids := make([]ent.Value, 0, len(m.seat_reservations))
+		for id := range m.seat_reservations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ScreeningMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 3)
+	if m.removedseat_reservations != nil {
+		edges = append(edges, screening.EdgeSeatReservations)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ScreeningMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case screening.EdgeSeatReservations:
+		ids := make([]ent.Value, 0, len(m.removedseat_reservations))
+		for id := range m.removedseat_reservations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ScreeningMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 3)
+	if m.clearedmovie {
+		edges = append(edges, screening.EdgeMovie)
+	}
+	if m.clearedcinema {
+		edges = append(edges, screening.EdgeCinema)
+	}
+	if m.clearedseat_reservations {
+		edges = append(edges, screening.EdgeSeatReservations)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ScreeningMutation) EdgeCleared(name string) bool {
+	switch name {
+	case screening.EdgeMovie:
+		return m.clearedmovie
+	case screening.EdgeCinema:
+		return m.clearedcinema
+	case screening.EdgeSeatReservations:
+		return m.clearedseat_reservations
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ScreeningMutation) ClearEdge(name string) error {
+	switch name {
+	case screening.EdgeMovie:
+		m.ClearMovie()
+		return nil
+	case screening.EdgeCinema:
+		m.ClearCinema()
+		return nil
+	}
 	return fmt.Errorf("unknown Screening unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ScreeningMutation) ResetEdge(name string) error {
+	switch name {
+	case screening.EdgeMovie:
+		m.ResetMovie()
+		return nil
+	case screening.EdgeCinema:
+		m.ResetCinema()
+		return nil
+	case screening.EdgeSeatReservations:
+		m.ResetSeatReservations()
+		return nil
+	}
 	return fmt.Errorf("unknown Screening edge %s", name)
 }
 
 // SeatMutation represents an operation that mutates the Seat nodes in the graph.
 type SeatMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int64
-	created_at    *time.Time
-	updated_at    *time.Time
-	row           *int16
-	addrow        *int16
-	column        *int16
-	addcolumn     *int16
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Seat, error)
-	predicates    []predicate.Seat
+	op                       Op
+	typ                      string
+	id                       *int64
+	created_at               *time.Time
+	updated_at               *time.Time
+	row                      *int16
+	addrow                   *int16
+	column                   *int16
+	addcolumn                *int16
+	clearedFields            map[string]struct{}
+	cinema                   *int64
+	clearedcinema            bool
+	seat_reservations        map[int64]struct{}
+	removedseat_reservations map[int64]struct{}
+	clearedseat_reservations bool
+	done                     bool
+	oldValue                 func(context.Context) (*Seat, error)
+	predicates               []predicate.Seat
 }
 
 var _ ent.Mutation = (*SeatMutation)(nil)
@@ -2127,6 +2645,99 @@ func (m *SeatMutation) ResetColumn() {
 	m.addcolumn = nil
 }
 
+// SetCinemaID sets the "cinema" edge to the Cinema entity by id.
+func (m *SeatMutation) SetCinemaID(id int64) {
+	m.cinema = &id
+}
+
+// ClearCinema clears the "cinema" edge to the Cinema entity.
+func (m *SeatMutation) ClearCinema() {
+	m.clearedcinema = true
+}
+
+// CinemaCleared reports if the "cinema" edge to the Cinema entity was cleared.
+func (m *SeatMutation) CinemaCleared() bool {
+	return m.clearedcinema
+}
+
+// CinemaID returns the "cinema" edge ID in the mutation.
+func (m *SeatMutation) CinemaID() (id int64, exists bool) {
+	if m.cinema != nil {
+		return *m.cinema, true
+	}
+	return
+}
+
+// CinemaIDs returns the "cinema" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CinemaID instead. It exists only for internal usage by the builders.
+func (m *SeatMutation) CinemaIDs() (ids []int64) {
+	if id := m.cinema; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCinema resets all changes to the "cinema" edge.
+func (m *SeatMutation) ResetCinema() {
+	m.cinema = nil
+	m.clearedcinema = false
+}
+
+// AddSeatReservationIDs adds the "seat_reservations" edge to the SeatReservation entity by ids.
+func (m *SeatMutation) AddSeatReservationIDs(ids ...int64) {
+	if m.seat_reservations == nil {
+		m.seat_reservations = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.seat_reservations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeatReservations clears the "seat_reservations" edge to the SeatReservation entity.
+func (m *SeatMutation) ClearSeatReservations() {
+	m.clearedseat_reservations = true
+}
+
+// SeatReservationsCleared reports if the "seat_reservations" edge to the SeatReservation entity was cleared.
+func (m *SeatMutation) SeatReservationsCleared() bool {
+	return m.clearedseat_reservations
+}
+
+// RemoveSeatReservationIDs removes the "seat_reservations" edge to the SeatReservation entity by IDs.
+func (m *SeatMutation) RemoveSeatReservationIDs(ids ...int64) {
+	if m.removedseat_reservations == nil {
+		m.removedseat_reservations = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.seat_reservations, ids[i])
+		m.removedseat_reservations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeatReservations returns the removed IDs of the "seat_reservations" edge to the SeatReservation entity.
+func (m *SeatMutation) RemovedSeatReservationsIDs() (ids []int64) {
+	for id := range m.removedseat_reservations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeatReservationsIDs returns the "seat_reservations" edge IDs in the mutation.
+func (m *SeatMutation) SeatReservationsIDs() (ids []int64) {
+	for id := range m.seat_reservations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeatReservations resets all changes to the "seat_reservations" edge.
+func (m *SeatMutation) ResetSeatReservations() {
+	m.seat_reservations = nil
+	m.clearedseat_reservations = false
+	m.removedseat_reservations = nil
+}
+
 // Where appends a list predicates to the SeatMutation builder.
 func (m *SeatMutation) Where(ps ...predicate.Seat) {
 	m.predicates = append(m.predicates, ps...)
@@ -2338,69 +2949,127 @@ func (m *SeatMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeatMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.cinema != nil {
+		edges = append(edges, seat.EdgeCinema)
+	}
+	if m.seat_reservations != nil {
+		edges = append(edges, seat.EdgeSeatReservations)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *SeatMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case seat.EdgeCinema:
+		if id := m.cinema; id != nil {
+			return []ent.Value{*id}
+		}
+	case seat.EdgeSeatReservations:
+		ids := make([]ent.Value, 0, len(m.seat_reservations))
+		for id := range m.seat_reservations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeatMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removedseat_reservations != nil {
+		edges = append(edges, seat.EdgeSeatReservations)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SeatMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case seat.EdgeSeatReservations:
+		ids := make([]ent.Value, 0, len(m.removedseat_reservations))
+		for id := range m.removedseat_reservations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeatMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedcinema {
+		edges = append(edges, seat.EdgeCinema)
+	}
+	if m.clearedseat_reservations {
+		edges = append(edges, seat.EdgeSeatReservations)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *SeatMutation) EdgeCleared(name string) bool {
+	switch name {
+	case seat.EdgeCinema:
+		return m.clearedcinema
+	case seat.EdgeSeatReservations:
+		return m.clearedseat_reservations
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *SeatMutation) ClearEdge(name string) error {
+	switch name {
+	case seat.EdgeCinema:
+		m.ClearCinema()
+		return nil
+	}
 	return fmt.Errorf("unknown Seat unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *SeatMutation) ResetEdge(name string) error {
+	switch name {
+	case seat.EdgeCinema:
+		m.ResetCinema()
+		return nil
+	case seat.EdgeSeatReservations:
+		m.ResetSeatReservations()
+		return nil
+	}
 	return fmt.Errorf("unknown Seat edge %s", name)
 }
 
 // SeatReservationMutation represents an operation that mutates the SeatReservation nodes in the graph.
 type SeatReservationMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int64
-	created_at    *time.Time
-	updated_at    *time.Time
-	reserved_at   *time.Time
-	group_id      *uuid.UUID
-	status        *seatreservation.Status
-	start_time    *time.Time
-	end_time      *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*SeatReservation, error)
-	predicates    []predicate.SeatReservation
+	op               Op
+	typ              string
+	id               *int64
+	created_at       *time.Time
+	updated_at       *time.Time
+	reserved_at      *time.Time
+	group_id         *uuid.UUID
+	status           *seatreservation.Status
+	start_time       *time.Time
+	end_time         *time.Time
+	clearedFields    map[string]struct{}
+	seat             *int64
+	clearedseat      bool
+	screening        *int64
+	clearedscreening bool
+	done             bool
+	oldValue         func(context.Context) (*SeatReservation, error)
+	predicates       []predicate.SeatReservation
 }
 
 var _ ent.Mutation = (*SeatReservationMutation)(nil)
@@ -2759,6 +3428,84 @@ func (m *SeatReservationMutation) ResetEndTime() {
 	m.end_time = nil
 }
 
+// SetSeatID sets the "seat" edge to the Seat entity by id.
+func (m *SeatReservationMutation) SetSeatID(id int64) {
+	m.seat = &id
+}
+
+// ClearSeat clears the "seat" edge to the Seat entity.
+func (m *SeatReservationMutation) ClearSeat() {
+	m.clearedseat = true
+}
+
+// SeatCleared reports if the "seat" edge to the Seat entity was cleared.
+func (m *SeatReservationMutation) SeatCleared() bool {
+	return m.clearedseat
+}
+
+// SeatID returns the "seat" edge ID in the mutation.
+func (m *SeatReservationMutation) SeatID() (id int64, exists bool) {
+	if m.seat != nil {
+		return *m.seat, true
+	}
+	return
+}
+
+// SeatIDs returns the "seat" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SeatID instead. It exists only for internal usage by the builders.
+func (m *SeatReservationMutation) SeatIDs() (ids []int64) {
+	if id := m.seat; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSeat resets all changes to the "seat" edge.
+func (m *SeatReservationMutation) ResetSeat() {
+	m.seat = nil
+	m.clearedseat = false
+}
+
+// SetScreeningID sets the "screening" edge to the Screening entity by id.
+func (m *SeatReservationMutation) SetScreeningID(id int64) {
+	m.screening = &id
+}
+
+// ClearScreening clears the "screening" edge to the Screening entity.
+func (m *SeatReservationMutation) ClearScreening() {
+	m.clearedscreening = true
+}
+
+// ScreeningCleared reports if the "screening" edge to the Screening entity was cleared.
+func (m *SeatReservationMutation) ScreeningCleared() bool {
+	return m.clearedscreening
+}
+
+// ScreeningID returns the "screening" edge ID in the mutation.
+func (m *SeatReservationMutation) ScreeningID() (id int64, exists bool) {
+	if m.screening != nil {
+		return *m.screening, true
+	}
+	return
+}
+
+// ScreeningIDs returns the "screening" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ScreeningID instead. It exists only for internal usage by the builders.
+func (m *SeatReservationMutation) ScreeningIDs() (ids []int64) {
+	if id := m.screening; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetScreening resets all changes to the "screening" edge.
+func (m *SeatReservationMutation) ResetScreening() {
+	m.screening = nil
+	m.clearedscreening = false
+}
+
 // Where appends a list predicates to the SeatReservationMutation builder.
 func (m *SeatReservationMutation) Where(ps ...predicate.SeatReservation) {
 	m.predicates = append(m.predicates, ps...)
@@ -2994,19 +3741,35 @@ func (m *SeatReservationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeatReservationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.seat != nil {
+		edges = append(edges, seatreservation.EdgeSeat)
+	}
+	if m.screening != nil {
+		edges = append(edges, seatreservation.EdgeScreening)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *SeatReservationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case seatreservation.EdgeSeat:
+		if id := m.seat; id != nil {
+			return []ent.Value{*id}
+		}
+	case seatreservation.EdgeScreening:
+		if id := m.screening; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeatReservationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -3018,24 +3781,52 @@ func (m *SeatReservationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeatReservationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedseat {
+		edges = append(edges, seatreservation.EdgeSeat)
+	}
+	if m.clearedscreening {
+		edges = append(edges, seatreservation.EdgeScreening)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *SeatReservationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case seatreservation.EdgeSeat:
+		return m.clearedseat
+	case seatreservation.EdgeScreening:
+		return m.clearedscreening
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *SeatReservationMutation) ClearEdge(name string) error {
+	switch name {
+	case seatreservation.EdgeSeat:
+		m.ClearSeat()
+		return nil
+	case seatreservation.EdgeScreening:
+		m.ClearScreening()
+		return nil
+	}
 	return fmt.Errorf("unknown SeatReservation unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *SeatReservationMutation) ResetEdge(name string) error {
+	switch name {
+	case seatreservation.EdgeSeat:
+		m.ResetSeat()
+		return nil
+	case seatreservation.EdgeScreening:
+		m.ResetScreening()
+		return nil
+	}
 	return fmt.Errorf("unknown SeatReservation edge %s", name)
 }

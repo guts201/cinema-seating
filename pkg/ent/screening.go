@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"cinema/pkg/ent/cinema"
+	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/screening"
 	"fmt"
 	"strings"
@@ -26,8 +28,57 @@ type Screening struct {
 	// StartTime holds the value of the "start_time" field.
 	StartTime time.Time `json:"start_time,omitempty"`
 	// MinDistance holds the value of the "min_distance" field.
-	MinDistance  int32 `json:"min_distance,omitempty"`
-	selectValues sql.SelectValues
+	MinDistance int32 `json:"min_distance,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ScreeningQuery when eager-loading is set.
+	Edges             ScreeningEdges `json:"edges"`
+	cinema_screenings *int64
+	movie_screenings  *int64
+	selectValues      sql.SelectValues
+}
+
+// ScreeningEdges holds the relations/edges for other nodes in the graph.
+type ScreeningEdges struct {
+	// Movie holds the value of the movie edge.
+	Movie *Movie `json:"movie,omitempty"`
+	// Cinema holds the value of the cinema edge.
+	Cinema *Cinema `json:"cinema,omitempty"`
+	// SeatReservations holds the value of the seat_reservations edge.
+	SeatReservations []*SeatReservation `json:"seat_reservations,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// MovieOrErr returns the Movie value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ScreeningEdges) MovieOrErr() (*Movie, error) {
+	if e.Movie != nil {
+		return e.Movie, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: movie.Label}
+	}
+	return nil, &NotLoadedError{edge: "movie"}
+}
+
+// CinemaOrErr returns the Cinema value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ScreeningEdges) CinemaOrErr() (*Cinema, error) {
+	if e.Cinema != nil {
+		return e.Cinema, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: cinema.Label}
+	}
+	return nil, &NotLoadedError{edge: "cinema"}
+}
+
+// SeatReservationsOrErr returns the SeatReservations value or an error if the edge
+// was not loaded in eager-loading.
+func (e ScreeningEdges) SeatReservationsOrErr() ([]*SeatReservation, error) {
+	if e.loadedTypes[2] {
+		return e.SeatReservations, nil
+	}
+	return nil, &NotLoadedError{edge: "seat_reservations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -41,6 +92,10 @@ func (*Screening) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case screening.FieldCreatedAt, screening.FieldUpdatedAt, screening.FieldStartTime:
 			values[i] = new(sql.NullTime)
+		case screening.ForeignKeys[0]: // cinema_screenings
+			values[i] = new(sql.NullInt64)
+		case screening.ForeignKeys[1]: // movie_screenings
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -92,6 +147,20 @@ func (s *Screening) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.MinDistance = int32(value.Int64)
 			}
+		case screening.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field cinema_screenings", value)
+			} else if value.Valid {
+				s.cinema_screenings = new(int64)
+				*s.cinema_screenings = int64(value.Int64)
+			}
+		case screening.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field movie_screenings", value)
+			} else if value.Valid {
+				s.movie_screenings = new(int64)
+				*s.movie_screenings = int64(value.Int64)
+			}
 		default:
 			s.selectValues.Set(columns[i], values[i])
 		}
@@ -103,6 +172,21 @@ func (s *Screening) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (s *Screening) Value(name string) (ent.Value, error) {
 	return s.selectValues.Get(name)
+}
+
+// QueryMovie queries the "movie" edge of the Screening entity.
+func (s *Screening) QueryMovie() *MovieQuery {
+	return NewScreeningClient(s.config).QueryMovie(s)
+}
+
+// QueryCinema queries the "cinema" edge of the Screening entity.
+func (s *Screening) QueryCinema() *CinemaQuery {
+	return NewScreeningClient(s.config).QueryCinema(s)
+}
+
+// QuerySeatReservations queries the "seat_reservations" edge of the Screening entity.
+func (s *Screening) QuerySeatReservations() *SeatReservationQuery {
+	return NewScreeningClient(s.config).QuerySeatReservations(s)
 }
 
 // Update returns a builder for updating this Screening.

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -23,8 +24,35 @@ const (
 	FieldStartTime = "start_time"
 	// FieldMinDistance holds the string denoting the min_distance field in the database.
 	FieldMinDistance = "min_distance"
+	// EdgeMovie holds the string denoting the movie edge name in mutations.
+	EdgeMovie = "movie"
+	// EdgeCinema holds the string denoting the cinema edge name in mutations.
+	EdgeCinema = "cinema"
+	// EdgeSeatReservations holds the string denoting the seat_reservations edge name in mutations.
+	EdgeSeatReservations = "seat_reservations"
 	// Table holds the table name of the screening in the database.
 	Table = "screenings"
+	// MovieTable is the table that holds the movie relation/edge.
+	MovieTable = "screenings"
+	// MovieInverseTable is the table name for the Movie entity.
+	// It exists in this package in order to avoid circular dependency with the "movie" package.
+	MovieInverseTable = "movies"
+	// MovieColumn is the table column denoting the movie relation/edge.
+	MovieColumn = "movie_screenings"
+	// CinemaTable is the table that holds the cinema relation/edge.
+	CinemaTable = "screenings"
+	// CinemaInverseTable is the table name for the Cinema entity.
+	// It exists in this package in order to avoid circular dependency with the "cinema" package.
+	CinemaInverseTable = "cinemas"
+	// CinemaColumn is the table column denoting the cinema relation/edge.
+	CinemaColumn = "cinema_screenings"
+	// SeatReservationsTable is the table that holds the seat_reservations relation/edge.
+	SeatReservationsTable = "seat_reservations"
+	// SeatReservationsInverseTable is the table name for the SeatReservation entity.
+	// It exists in this package in order to avoid circular dependency with the "seatreservation" package.
+	SeatReservationsInverseTable = "seat_reservations"
+	// SeatReservationsColumn is the table column denoting the seat_reservations relation/edge.
+	SeatReservationsColumn = "screening_seat_reservations"
 )
 
 // Columns holds all SQL columns for screening fields.
@@ -37,10 +65,22 @@ var Columns = []string{
 	FieldMinDistance,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "screenings"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"cinema_screenings",
+	"movie_screenings",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -91,4 +131,53 @@ func ByStartTime(opts ...sql.OrderTermOption) OrderOption {
 // ByMinDistance orders the results by the min_distance field.
 func ByMinDistance(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMinDistance, opts...).ToFunc()
+}
+
+// ByMovieField orders the results by movie field.
+func ByMovieField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMovieStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCinemaField orders the results by cinema field.
+func ByCinemaField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCinemaStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySeatReservationsCount orders the results by seat_reservations count.
+func BySeatReservationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeatReservationsStep(), opts...)
+	}
+}
+
+// BySeatReservations orders the results by seat_reservations terms.
+func BySeatReservations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeatReservationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newMovieStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MovieInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, MovieTable, MovieColumn),
+	)
+}
+func newCinemaStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CinemaInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CinemaTable, CinemaColumn),
+	)
+}
+func newSeatReservationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeatReservationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeatReservationsTable, SeatReservationsColumn),
+	)
 }

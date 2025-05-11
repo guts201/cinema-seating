@@ -4,6 +4,7 @@ package ent
 
 import (
 	"cinema/pkg/ent/movie"
+	"cinema/pkg/ent/screening"
 	"context"
 	"errors"
 	"fmt"
@@ -66,6 +67,21 @@ func (mc *MovieCreate) SetDuration(u uint64) *MovieCreate {
 func (mc *MovieCreate) SetID(i int64) *MovieCreate {
 	mc.mutation.SetID(i)
 	return mc
+}
+
+// AddScreeningIDs adds the "screenings" edge to the Screening entity by IDs.
+func (mc *MovieCreate) AddScreeningIDs(ids ...int64) *MovieCreate {
+	mc.mutation.AddScreeningIDs(ids...)
+	return mc
+}
+
+// AddScreenings adds the "screenings" edges to the Screening entity.
+func (mc *MovieCreate) AddScreenings(s ...*Screening) *MovieCreate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return mc.AddScreeningIDs(ids...)
 }
 
 // Mutation returns the MovieMutation object of the builder.
@@ -180,6 +196,22 @@ func (mc *MovieCreate) createSpec() (*Movie, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.Duration(); ok {
 		_spec.SetField(movie.FieldDuration, field.TypeUint64, value)
 		_node.Duration = value
+	}
+	if nodes := mc.mutation.ScreeningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   movie.ScreeningsTable,
+			Columns: []string{movie.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
