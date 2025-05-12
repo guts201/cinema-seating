@@ -26,6 +26,8 @@ type ClientCinemaClient interface {
 	GetAvailableGroups(ctx context.Context, in *GetAvailableGroupsRequest, opts ...grpc.CallOption) (*GetAvailableGroupsResponse, error)
 	ReserveSeats(ctx context.Context, in *ReserveSeatsRequest, opts ...grpc.CallOption) (*ReserveSeatsResponse, error)
 	CancelSeats(ctx context.Context, in *CancelSeatsRequest, opts ...grpc.CallOption) (*CancelSeatsResponse, error)
+	ListScreening(ctx context.Context, in *ListScreeningRequest, opts ...grpc.CallOption) (*ListScreeningResponse, error)
+	ListCinema(ctx context.Context, in *ListCinemaRequest, opts ...grpc.CallOption) (*ListCinemaResponse, error)
 }
 
 type clientCinemaClient struct {
@@ -63,6 +65,24 @@ func (c *clientCinemaClient) CancelSeats(ctx context.Context, in *CancelSeatsReq
 	return out, nil
 }
 
+func (c *clientCinemaClient) ListScreening(ctx context.Context, in *ListScreeningRequest, opts ...grpc.CallOption) (*ListScreeningResponse, error) {
+	out := new(ListScreeningResponse)
+	err := c.cc.Invoke(ctx, "/cinema.ClientCinema/ListScreening", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clientCinemaClient) ListCinema(ctx context.Context, in *ListCinemaRequest, opts ...grpc.CallOption) (*ListCinemaResponse, error) {
+	out := new(ListCinemaResponse)
+	err := c.cc.Invoke(ctx, "/cinema.ClientCinema/ListCinema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClientCinemaServer is the server API for ClientCinema service.
 // All implementations must embed UnimplementedClientCinemaServer
 // for forward compatibility
@@ -70,6 +90,8 @@ type ClientCinemaServer interface {
 	GetAvailableGroups(context.Context, *GetAvailableGroupsRequest) (*GetAvailableGroupsResponse, error)
 	ReserveSeats(context.Context, *ReserveSeatsRequest) (*ReserveSeatsResponse, error)
 	CancelSeats(context.Context, *CancelSeatsRequest) (*CancelSeatsResponse, error)
+	ListScreening(context.Context, *ListScreeningRequest) (*ListScreeningResponse, error)
+	ListCinema(context.Context, *ListCinemaRequest) (*ListCinemaResponse, error)
 	mustEmbedUnimplementedClientCinemaServer()
 }
 
@@ -85,6 +107,12 @@ func (UnimplementedClientCinemaServer) ReserveSeats(context.Context, *ReserveSea
 }
 func (UnimplementedClientCinemaServer) CancelSeats(context.Context, *CancelSeatsRequest) (*CancelSeatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CancelSeats not implemented")
+}
+func (UnimplementedClientCinemaServer) ListScreening(context.Context, *ListScreeningRequest) (*ListScreeningResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListScreening not implemented")
+}
+func (UnimplementedClientCinemaServer) ListCinema(context.Context, *ListCinemaRequest) (*ListCinemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCinema not implemented")
 }
 func (UnimplementedClientCinemaServer) mustEmbedUnimplementedClientCinemaServer() {}
 
@@ -153,6 +181,42 @@ func _ClientCinema_CancelSeats_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClientCinema_ListScreening_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListScreeningRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClientCinemaServer).ListScreening(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cinema.ClientCinema/ListScreening",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClientCinemaServer).ListScreening(ctx, req.(*ListScreeningRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClientCinema_ListCinema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCinemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClientCinemaServer).ListCinema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cinema.ClientCinema/ListCinema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClientCinemaServer).ListCinema(ctx, req.(*ListCinemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClientCinema_ServiceDesc is the grpc.ServiceDesc for ClientCinema service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -172,6 +236,14 @@ var ClientCinema_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "CancelSeats",
 			Handler:    _ClientCinema_CancelSeats_Handler,
 		},
+		{
+			MethodName: "ListScreening",
+			Handler:    _ClientCinema_ListScreening_Handler,
+		},
+		{
+			MethodName: "ListCinema",
+			Handler:    _ClientCinema_ListCinema_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "cinema-seating/api/cinema.proto",
@@ -187,6 +259,7 @@ type BackofficeCinemaClient interface {
 	GetCinemas(ctx context.Context, in *GetCinemasRequest, opts ...grpc.CallOption) (*GetCinemasResponse, error)
 	GetCinema(ctx context.Context, in *GetCinemaRequest, opts ...grpc.CallOption) (*GetCinemaResponse, error)
 	CreateMovie(ctx context.Context, in *CreateMovieRequest, opts ...grpc.CallOption) (*CreateMovieResponse, error)
+	CreateScreening(ctx context.Context, in *CreateScreeningRequest, opts ...grpc.CallOption) (*CreateScreeningResponse, error)
 }
 
 type backofficeCinemaClient struct {
@@ -251,6 +324,15 @@ func (c *backofficeCinemaClient) CreateMovie(ctx context.Context, in *CreateMovi
 	return out, nil
 }
 
+func (c *backofficeCinemaClient) CreateScreening(ctx context.Context, in *CreateScreeningRequest, opts ...grpc.CallOption) (*CreateScreeningResponse, error) {
+	out := new(CreateScreeningResponse)
+	err := c.cc.Invoke(ctx, "/cinema.BackofficeCinema/CreateScreening", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackofficeCinemaServer is the server API for BackofficeCinema service.
 // All implementations must embed UnimplementedBackofficeCinemaServer
 // for forward compatibility
@@ -261,6 +343,7 @@ type BackofficeCinemaServer interface {
 	GetCinemas(context.Context, *GetCinemasRequest) (*GetCinemasResponse, error)
 	GetCinema(context.Context, *GetCinemaRequest) (*GetCinemaResponse, error)
 	CreateMovie(context.Context, *CreateMovieRequest) (*CreateMovieResponse, error)
+	CreateScreening(context.Context, *CreateScreeningRequest) (*CreateScreeningResponse, error)
 	mustEmbedUnimplementedBackofficeCinemaServer()
 }
 
@@ -285,6 +368,9 @@ func (UnimplementedBackofficeCinemaServer) GetCinema(context.Context, *GetCinema
 }
 func (UnimplementedBackofficeCinemaServer) CreateMovie(context.Context, *CreateMovieRequest) (*CreateMovieResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateMovie not implemented")
+}
+func (UnimplementedBackofficeCinemaServer) CreateScreening(context.Context, *CreateScreeningRequest) (*CreateScreeningResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateScreening not implemented")
 }
 func (UnimplementedBackofficeCinemaServer) mustEmbedUnimplementedBackofficeCinemaServer() {}
 
@@ -407,6 +493,24 @@ func _BackofficeCinema_CreateMovie_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackofficeCinema_CreateScreening_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateScreeningRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackofficeCinemaServer).CreateScreening(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cinema.BackofficeCinema/CreateScreening",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackofficeCinemaServer).CreateScreening(ctx, req.(*CreateScreeningRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackofficeCinema_ServiceDesc is the grpc.ServiceDesc for BackofficeCinema service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -437,6 +541,10 @@ var BackofficeCinema_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateMovie",
 			Handler:    _BackofficeCinema_CreateMovie_Handler,
+		},
+		{
+			MethodName: "CreateScreening",
+			Handler:    _BackofficeCinema_CreateScreening_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -18,8 +18,6 @@ type Tx struct {
 	Movie *MovieClient
 	// Screening is the client for interacting with the Screening builders.
 	Screening *ScreeningClient
-	// Seat is the client for interacting with the Seat builders.
-	Seat *SeatClient
 	// SeatReservation is the client for interacting with the SeatReservation builders.
 	SeatReservation *SeatReservationClient
 
@@ -156,7 +154,6 @@ func (tx *Tx) init() {
 	tx.Cinema = NewCinemaClient(tx.config)
 	tx.Movie = NewMovieClient(tx.config)
 	tx.Screening = NewScreeningClient(tx.config)
-	tx.Seat = NewSeatClient(tx.config)
 	tx.SeatReservation = NewSeatReservationClient(tx.config)
 }
 

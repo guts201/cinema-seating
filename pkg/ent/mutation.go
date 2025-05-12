@@ -3,11 +3,11 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	cinema "cinema/api"
+	entcinema "cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/predicate"
 	"cinema/pkg/ent/screening"
-	"cinema/pkg/ent/seat"
 	"cinema/pkg/ent/seatreservation"
 	"context"
 	"errors"
@@ -32,7 +32,6 @@ const (
 	TypeCinema          = "Cinema"
 	TypeMovie           = "Movie"
 	TypeScreening       = "Screening"
-	TypeSeat            = "Seat"
 	TypeSeatReservation = "SeatReservation"
 )
 
@@ -52,9 +51,6 @@ type CinemaMutation struct {
 	min_distance      *uint32
 	addmin_distance   *int32
 	clearedFields     map[string]struct{}
-	seats             map[int64]struct{}
-	removedseats      map[int64]struct{}
-	clearedseats      bool
 	screenings        map[int64]struct{}
 	removedscreenings map[int64]struct{}
 	clearedscreenings bool
@@ -443,60 +439,6 @@ func (m *CinemaMutation) ResetMinDistance() {
 	m.addmin_distance = nil
 }
 
-// AddSeatIDs adds the "seats" edge to the Seat entity by ids.
-func (m *CinemaMutation) AddSeatIDs(ids ...int64) {
-	if m.seats == nil {
-		m.seats = make(map[int64]struct{})
-	}
-	for i := range ids {
-		m.seats[ids[i]] = struct{}{}
-	}
-}
-
-// ClearSeats clears the "seats" edge to the Seat entity.
-func (m *CinemaMutation) ClearSeats() {
-	m.clearedseats = true
-}
-
-// SeatsCleared reports if the "seats" edge to the Seat entity was cleared.
-func (m *CinemaMutation) SeatsCleared() bool {
-	return m.clearedseats
-}
-
-// RemoveSeatIDs removes the "seats" edge to the Seat entity by IDs.
-func (m *CinemaMutation) RemoveSeatIDs(ids ...int64) {
-	if m.removedseats == nil {
-		m.removedseats = make(map[int64]struct{})
-	}
-	for i := range ids {
-		delete(m.seats, ids[i])
-		m.removedseats[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedSeats returns the removed IDs of the "seats" edge to the Seat entity.
-func (m *CinemaMutation) RemovedSeatsIDs() (ids []int64) {
-	for id := range m.removedseats {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// SeatsIDs returns the "seats" edge IDs in the mutation.
-func (m *CinemaMutation) SeatsIDs() (ids []int64) {
-	for id := range m.seats {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetSeats resets all changes to the "seats" edge.
-func (m *CinemaMutation) ResetSeats() {
-	m.seats = nil
-	m.clearedseats = false
-	m.removedseats = nil
-}
-
 // AddScreeningIDs adds the "screenings" edge to the Screening entity by ids.
 func (m *CinemaMutation) AddScreeningIDs(ids ...int64) {
 	if m.screenings == nil {
@@ -587,22 +529,22 @@ func (m *CinemaMutation) Type() string {
 func (m *CinemaMutation) Fields() []string {
 	fields := make([]string, 0, 6)
 	if m.created_at != nil {
-		fields = append(fields, cinema.FieldCreatedAt)
+		fields = append(fields, entcinema.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
-		fields = append(fields, cinema.FieldUpdatedAt)
+		fields = append(fields, entcinema.FieldUpdatedAt)
 	}
 	if m.num_row != nil {
-		fields = append(fields, cinema.FieldNumRow)
+		fields = append(fields, entcinema.FieldNumRow)
 	}
 	if m.num_column != nil {
-		fields = append(fields, cinema.FieldNumColumn)
+		fields = append(fields, entcinema.FieldNumColumn)
 	}
 	if m.name != nil {
-		fields = append(fields, cinema.FieldName)
+		fields = append(fields, entcinema.FieldName)
 	}
 	if m.min_distance != nil {
-		fields = append(fields, cinema.FieldMinDistance)
+		fields = append(fields, entcinema.FieldMinDistance)
 	}
 	return fields
 }
@@ -612,17 +554,17 @@ func (m *CinemaMutation) Fields() []string {
 // schema.
 func (m *CinemaMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case cinema.FieldCreatedAt:
+	case entcinema.FieldCreatedAt:
 		return m.CreatedAt()
-	case cinema.FieldUpdatedAt:
+	case entcinema.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case cinema.FieldNumRow:
+	case entcinema.FieldNumRow:
 		return m.NumRow()
-	case cinema.FieldNumColumn:
+	case entcinema.FieldNumColumn:
 		return m.NumColumn()
-	case cinema.FieldName:
+	case entcinema.FieldName:
 		return m.Name()
-	case cinema.FieldMinDistance:
+	case entcinema.FieldMinDistance:
 		return m.MinDistance()
 	}
 	return nil, false
@@ -633,17 +575,17 @@ func (m *CinemaMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *CinemaMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case cinema.FieldCreatedAt:
+	case entcinema.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case cinema.FieldUpdatedAt:
+	case entcinema.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case cinema.FieldNumRow:
+	case entcinema.FieldNumRow:
 		return m.OldNumRow(ctx)
-	case cinema.FieldNumColumn:
+	case entcinema.FieldNumColumn:
 		return m.OldNumColumn(ctx)
-	case cinema.FieldName:
+	case entcinema.FieldName:
 		return m.OldName(ctx)
-	case cinema.FieldMinDistance:
+	case entcinema.FieldMinDistance:
 		return m.OldMinDistance(ctx)
 	}
 	return nil, fmt.Errorf("unknown Cinema field %s", name)
@@ -654,42 +596,42 @@ func (m *CinemaMutation) OldField(ctx context.Context, name string) (ent.Value, 
 // type.
 func (m *CinemaMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case cinema.FieldCreatedAt:
+	case entcinema.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case cinema.FieldUpdatedAt:
+	case entcinema.FieldUpdatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case cinema.FieldNumRow:
+	case entcinema.FieldNumRow:
 		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNumRow(v)
 		return nil
-	case cinema.FieldNumColumn:
+	case entcinema.FieldNumColumn:
 		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNumColumn(v)
 		return nil
-	case cinema.FieldName:
+	case entcinema.FieldName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
 		return nil
-	case cinema.FieldMinDistance:
+	case entcinema.FieldMinDistance:
 		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -705,13 +647,13 @@ func (m *CinemaMutation) SetField(name string, value ent.Value) error {
 func (m *CinemaMutation) AddedFields() []string {
 	var fields []string
 	if m.addnum_row != nil {
-		fields = append(fields, cinema.FieldNumRow)
+		fields = append(fields, entcinema.FieldNumRow)
 	}
 	if m.addnum_column != nil {
-		fields = append(fields, cinema.FieldNumColumn)
+		fields = append(fields, entcinema.FieldNumColumn)
 	}
 	if m.addmin_distance != nil {
-		fields = append(fields, cinema.FieldMinDistance)
+		fields = append(fields, entcinema.FieldMinDistance)
 	}
 	return fields
 }
@@ -721,11 +663,11 @@ func (m *CinemaMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *CinemaMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case cinema.FieldNumRow:
+	case entcinema.FieldNumRow:
 		return m.AddedNumRow()
-	case cinema.FieldNumColumn:
+	case entcinema.FieldNumColumn:
 		return m.AddedNumColumn()
-	case cinema.FieldMinDistance:
+	case entcinema.FieldMinDistance:
 		return m.AddedMinDistance()
 	}
 	return nil, false
@@ -736,21 +678,21 @@ func (m *CinemaMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *CinemaMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case cinema.FieldNumRow:
+	case entcinema.FieldNumRow:
 		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddNumRow(v)
 		return nil
-	case cinema.FieldNumColumn:
+	case entcinema.FieldNumColumn:
 		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddNumColumn(v)
 		return nil
-	case cinema.FieldMinDistance:
+	case entcinema.FieldMinDistance:
 		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -784,22 +726,22 @@ func (m *CinemaMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *CinemaMutation) ResetField(name string) error {
 	switch name {
-	case cinema.FieldCreatedAt:
+	case entcinema.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case cinema.FieldUpdatedAt:
+	case entcinema.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
-	case cinema.FieldNumRow:
+	case entcinema.FieldNumRow:
 		m.ResetNumRow()
 		return nil
-	case cinema.FieldNumColumn:
+	case entcinema.FieldNumColumn:
 		m.ResetNumColumn()
 		return nil
-	case cinema.FieldName:
+	case entcinema.FieldName:
 		m.ResetName()
 		return nil
-	case cinema.FieldMinDistance:
+	case entcinema.FieldMinDistance:
 		m.ResetMinDistance()
 		return nil
 	}
@@ -808,12 +750,9 @@ func (m *CinemaMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CinemaMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.seats != nil {
-		edges = append(edges, cinema.EdgeSeats)
-	}
+	edges := make([]string, 0, 1)
 	if m.screenings != nil {
-		edges = append(edges, cinema.EdgeScreenings)
+		edges = append(edges, entcinema.EdgeScreenings)
 	}
 	return edges
 }
@@ -822,13 +761,7 @@ func (m *CinemaMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *CinemaMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case cinema.EdgeSeats:
-		ids := make([]ent.Value, 0, len(m.seats))
-		for id := range m.seats {
-			ids = append(ids, id)
-		}
-		return ids
-	case cinema.EdgeScreenings:
+	case entcinema.EdgeScreenings:
 		ids := make([]ent.Value, 0, len(m.screenings))
 		for id := range m.screenings {
 			ids = append(ids, id)
@@ -840,12 +773,9 @@ func (m *CinemaMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CinemaMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedseats != nil {
-		edges = append(edges, cinema.EdgeSeats)
-	}
+	edges := make([]string, 0, 1)
 	if m.removedscreenings != nil {
-		edges = append(edges, cinema.EdgeScreenings)
+		edges = append(edges, entcinema.EdgeScreenings)
 	}
 	return edges
 }
@@ -854,13 +784,7 @@ func (m *CinemaMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *CinemaMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case cinema.EdgeSeats:
-		ids := make([]ent.Value, 0, len(m.removedseats))
-		for id := range m.removedseats {
-			ids = append(ids, id)
-		}
-		return ids
-	case cinema.EdgeScreenings:
+	case entcinema.EdgeScreenings:
 		ids := make([]ent.Value, 0, len(m.removedscreenings))
 		for id := range m.removedscreenings {
 			ids = append(ids, id)
@@ -872,12 +796,9 @@ func (m *CinemaMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CinemaMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedseats {
-		edges = append(edges, cinema.EdgeSeats)
-	}
+	edges := make([]string, 0, 1)
 	if m.clearedscreenings {
-		edges = append(edges, cinema.EdgeScreenings)
+		edges = append(edges, entcinema.EdgeScreenings)
 	}
 	return edges
 }
@@ -886,9 +807,7 @@ func (m *CinemaMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *CinemaMutation) EdgeCleared(name string) bool {
 	switch name {
-	case cinema.EdgeSeats:
-		return m.clearedseats
-	case cinema.EdgeScreenings:
+	case entcinema.EdgeScreenings:
 		return m.clearedscreenings
 	}
 	return false
@@ -906,10 +825,7 @@ func (m *CinemaMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *CinemaMutation) ResetEdge(name string) error {
 	switch name {
-	case cinema.EdgeSeats:
-		m.ResetSeats()
-		return nil
-	case cinema.EdgeScreenings:
+	case entcinema.EdgeScreenings:
 		m.ResetScreenings()
 		return nil
 	}
@@ -1549,8 +1465,6 @@ type ScreeningMutation struct {
 	updated_at               *time.Time
 	title                    *string
 	start_time               *time.Time
-	min_distance             *int32
-	addmin_distance          *int32
 	clearedFields            map[string]struct{}
 	movie                    *int64
 	clearedmovie             bool
@@ -1812,62 +1726,6 @@ func (m *ScreeningMutation) ResetStartTime() {
 	m.start_time = nil
 }
 
-// SetMinDistance sets the "min_distance" field.
-func (m *ScreeningMutation) SetMinDistance(i int32) {
-	m.min_distance = &i
-	m.addmin_distance = nil
-}
-
-// MinDistance returns the value of the "min_distance" field in the mutation.
-func (m *ScreeningMutation) MinDistance() (r int32, exists bool) {
-	v := m.min_distance
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMinDistance returns the old "min_distance" field's value of the Screening entity.
-// If the Screening object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ScreeningMutation) OldMinDistance(ctx context.Context) (v int32, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMinDistance is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMinDistance requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMinDistance: %w", err)
-	}
-	return oldValue.MinDistance, nil
-}
-
-// AddMinDistance adds i to the "min_distance" field.
-func (m *ScreeningMutation) AddMinDistance(i int32) {
-	if m.addmin_distance != nil {
-		*m.addmin_distance += i
-	} else {
-		m.addmin_distance = &i
-	}
-}
-
-// AddedMinDistance returns the value that was added to the "min_distance" field in this mutation.
-func (m *ScreeningMutation) AddedMinDistance() (r int32, exists bool) {
-	v := m.addmin_distance
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetMinDistance resets all changes to the "min_distance" field.
-func (m *ScreeningMutation) ResetMinDistance() {
-	m.min_distance = nil
-	m.addmin_distance = nil
-}
-
 // SetMovieID sets the "movie" edge to the Movie entity by id.
 func (m *ScreeningMutation) SetMovieID(id int64) {
 	m.movie = &id
@@ -2034,7 +1892,7 @@ func (m *ScreeningMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ScreeningMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 4)
 	if m.created_at != nil {
 		fields = append(fields, screening.FieldCreatedAt)
 	}
@@ -2046,9 +1904,6 @@ func (m *ScreeningMutation) Fields() []string {
 	}
 	if m.start_time != nil {
 		fields = append(fields, screening.FieldStartTime)
-	}
-	if m.min_distance != nil {
-		fields = append(fields, screening.FieldMinDistance)
 	}
 	return fields
 }
@@ -2066,8 +1921,6 @@ func (m *ScreeningMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case screening.FieldStartTime:
 		return m.StartTime()
-	case screening.FieldMinDistance:
-		return m.MinDistance()
 	}
 	return nil, false
 }
@@ -2085,8 +1938,6 @@ func (m *ScreeningMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldTitle(ctx)
 	case screening.FieldStartTime:
 		return m.OldStartTime(ctx)
-	case screening.FieldMinDistance:
-		return m.OldMinDistance(ctx)
 	}
 	return nil, fmt.Errorf("unknown Screening field %s", name)
 }
@@ -2124,13 +1975,6 @@ func (m *ScreeningMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStartTime(v)
 		return nil
-	case screening.FieldMinDistance:
-		v, ok := value.(int32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMinDistance(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Screening field %s", name)
 }
@@ -2138,21 +1982,13 @@ func (m *ScreeningMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *ScreeningMutation) AddedFields() []string {
-	var fields []string
-	if m.addmin_distance != nil {
-		fields = append(fields, screening.FieldMinDistance)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *ScreeningMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case screening.FieldMinDistance:
-		return m.AddedMinDistance()
-	}
 	return nil, false
 }
 
@@ -2161,13 +1997,6 @@ func (m *ScreeningMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ScreeningMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case screening.FieldMinDistance:
-		v, ok := value.(int32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddMinDistance(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Screening numeric field %s", name)
 }
@@ -2206,9 +2035,6 @@ func (m *ScreeningMutation) ResetField(name string) error {
 		return nil
 	case screening.FieldStartTime:
 		m.ResetStartTime()
-		return nil
-	case screening.FieldMinDistance:
-		m.ResetMinDistance()
 		return nil
 	}
 	return fmt.Errorf("unknown Screening field %s", name)
@@ -2334,721 +2160,6 @@ func (m *ScreeningMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Screening edge %s", name)
 }
 
-// SeatMutation represents an operation that mutates the Seat nodes in the graph.
-type SeatMutation struct {
-	config
-	op                       Op
-	typ                      string
-	id                       *int64
-	created_at               *time.Time
-	updated_at               *time.Time
-	row                      *int16
-	addrow                   *int16
-	column                   *int16
-	addcolumn                *int16
-	clearedFields            map[string]struct{}
-	cinema                   *int64
-	clearedcinema            bool
-	seat_reservations        map[int64]struct{}
-	removedseat_reservations map[int64]struct{}
-	clearedseat_reservations bool
-	done                     bool
-	oldValue                 func(context.Context) (*Seat, error)
-	predicates               []predicate.Seat
-}
-
-var _ ent.Mutation = (*SeatMutation)(nil)
-
-// seatOption allows management of the mutation configuration using functional options.
-type seatOption func(*SeatMutation)
-
-// newSeatMutation creates new mutation for the Seat entity.
-func newSeatMutation(c config, op Op, opts ...seatOption) *SeatMutation {
-	m := &SeatMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeSeat,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withSeatID sets the ID field of the mutation.
-func withSeatID(id int64) seatOption {
-	return func(m *SeatMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Seat
-		)
-		m.oldValue = func(ctx context.Context) (*Seat, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Seat.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withSeat sets the old Seat of the mutation.
-func withSeat(node *Seat) seatOption {
-	return func(m *SeatMutation) {
-		m.oldValue = func(context.Context) (*Seat, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m SeatMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m SeatMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Seat entities.
-func (m *SeatMutation) SetID(id int64) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *SeatMutation) ID() (id int64, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *SeatMutation) IDs(ctx context.Context) ([]int64, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int64{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Seat.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *SeatMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *SeatMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the Seat entity.
-// If the Seat object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeatMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *SeatMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *SeatMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *SeatMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the Seat entity.
-// If the Seat object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeatMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *SeatMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetRow sets the "row" field.
-func (m *SeatMutation) SetRow(i int16) {
-	m.row = &i
-	m.addrow = nil
-}
-
-// Row returns the value of the "row" field in the mutation.
-func (m *SeatMutation) Row() (r int16, exists bool) {
-	v := m.row
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRow returns the old "row" field's value of the Seat entity.
-// If the Seat object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeatMutation) OldRow(ctx context.Context) (v int16, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRow is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRow requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRow: %w", err)
-	}
-	return oldValue.Row, nil
-}
-
-// AddRow adds i to the "row" field.
-func (m *SeatMutation) AddRow(i int16) {
-	if m.addrow != nil {
-		*m.addrow += i
-	} else {
-		m.addrow = &i
-	}
-}
-
-// AddedRow returns the value that was added to the "row" field in this mutation.
-func (m *SeatMutation) AddedRow() (r int16, exists bool) {
-	v := m.addrow
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRow resets all changes to the "row" field.
-func (m *SeatMutation) ResetRow() {
-	m.row = nil
-	m.addrow = nil
-}
-
-// SetColumn sets the "column" field.
-func (m *SeatMutation) SetColumn(i int16) {
-	m.column = &i
-	m.addcolumn = nil
-}
-
-// Column returns the value of the "column" field in the mutation.
-func (m *SeatMutation) Column() (r int16, exists bool) {
-	v := m.column
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldColumn returns the old "column" field's value of the Seat entity.
-// If the Seat object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeatMutation) OldColumn(ctx context.Context) (v int16, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldColumn is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldColumn requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldColumn: %w", err)
-	}
-	return oldValue.Column, nil
-}
-
-// AddColumn adds i to the "column" field.
-func (m *SeatMutation) AddColumn(i int16) {
-	if m.addcolumn != nil {
-		*m.addcolumn += i
-	} else {
-		m.addcolumn = &i
-	}
-}
-
-// AddedColumn returns the value that was added to the "column" field in this mutation.
-func (m *SeatMutation) AddedColumn() (r int16, exists bool) {
-	v := m.addcolumn
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetColumn resets all changes to the "column" field.
-func (m *SeatMutation) ResetColumn() {
-	m.column = nil
-	m.addcolumn = nil
-}
-
-// SetCinemaID sets the "cinema" edge to the Cinema entity by id.
-func (m *SeatMutation) SetCinemaID(id int64) {
-	m.cinema = &id
-}
-
-// ClearCinema clears the "cinema" edge to the Cinema entity.
-func (m *SeatMutation) ClearCinema() {
-	m.clearedcinema = true
-}
-
-// CinemaCleared reports if the "cinema" edge to the Cinema entity was cleared.
-func (m *SeatMutation) CinemaCleared() bool {
-	return m.clearedcinema
-}
-
-// CinemaID returns the "cinema" edge ID in the mutation.
-func (m *SeatMutation) CinemaID() (id int64, exists bool) {
-	if m.cinema != nil {
-		return *m.cinema, true
-	}
-	return
-}
-
-// CinemaIDs returns the "cinema" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CinemaID instead. It exists only for internal usage by the builders.
-func (m *SeatMutation) CinemaIDs() (ids []int64) {
-	if id := m.cinema; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetCinema resets all changes to the "cinema" edge.
-func (m *SeatMutation) ResetCinema() {
-	m.cinema = nil
-	m.clearedcinema = false
-}
-
-// AddSeatReservationIDs adds the "seat_reservations" edge to the SeatReservation entity by ids.
-func (m *SeatMutation) AddSeatReservationIDs(ids ...int64) {
-	if m.seat_reservations == nil {
-		m.seat_reservations = make(map[int64]struct{})
-	}
-	for i := range ids {
-		m.seat_reservations[ids[i]] = struct{}{}
-	}
-}
-
-// ClearSeatReservations clears the "seat_reservations" edge to the SeatReservation entity.
-func (m *SeatMutation) ClearSeatReservations() {
-	m.clearedseat_reservations = true
-}
-
-// SeatReservationsCleared reports if the "seat_reservations" edge to the SeatReservation entity was cleared.
-func (m *SeatMutation) SeatReservationsCleared() bool {
-	return m.clearedseat_reservations
-}
-
-// RemoveSeatReservationIDs removes the "seat_reservations" edge to the SeatReservation entity by IDs.
-func (m *SeatMutation) RemoveSeatReservationIDs(ids ...int64) {
-	if m.removedseat_reservations == nil {
-		m.removedseat_reservations = make(map[int64]struct{})
-	}
-	for i := range ids {
-		delete(m.seat_reservations, ids[i])
-		m.removedseat_reservations[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedSeatReservations returns the removed IDs of the "seat_reservations" edge to the SeatReservation entity.
-func (m *SeatMutation) RemovedSeatReservationsIDs() (ids []int64) {
-	for id := range m.removedseat_reservations {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// SeatReservationsIDs returns the "seat_reservations" edge IDs in the mutation.
-func (m *SeatMutation) SeatReservationsIDs() (ids []int64) {
-	for id := range m.seat_reservations {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetSeatReservations resets all changes to the "seat_reservations" edge.
-func (m *SeatMutation) ResetSeatReservations() {
-	m.seat_reservations = nil
-	m.clearedseat_reservations = false
-	m.removedseat_reservations = nil
-}
-
-// Where appends a list predicates to the SeatMutation builder.
-func (m *SeatMutation) Where(ps ...predicate.Seat) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the SeatMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *SeatMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Seat, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *SeatMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *SeatMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Seat).
-func (m *SeatMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *SeatMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.created_at != nil {
-		fields = append(fields, seat.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, seat.FieldUpdatedAt)
-	}
-	if m.row != nil {
-		fields = append(fields, seat.FieldRow)
-	}
-	if m.column != nil {
-		fields = append(fields, seat.FieldColumn)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *SeatMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case seat.FieldCreatedAt:
-		return m.CreatedAt()
-	case seat.FieldUpdatedAt:
-		return m.UpdatedAt()
-	case seat.FieldRow:
-		return m.Row()
-	case seat.FieldColumn:
-		return m.Column()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *SeatMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case seat.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case seat.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	case seat.FieldRow:
-		return m.OldRow(ctx)
-	case seat.FieldColumn:
-		return m.OldColumn(ctx)
-	}
-	return nil, fmt.Errorf("unknown Seat field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *SeatMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case seat.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case seat.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	case seat.FieldRow:
-		v, ok := value.(int16)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRow(v)
-		return nil
-	case seat.FieldColumn:
-		v, ok := value.(int16)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetColumn(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Seat field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *SeatMutation) AddedFields() []string {
-	var fields []string
-	if m.addrow != nil {
-		fields = append(fields, seat.FieldRow)
-	}
-	if m.addcolumn != nil {
-		fields = append(fields, seat.FieldColumn)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *SeatMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case seat.FieldRow:
-		return m.AddedRow()
-	case seat.FieldColumn:
-		return m.AddedColumn()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *SeatMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case seat.FieldRow:
-		v, ok := value.(int16)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRow(v)
-		return nil
-	case seat.FieldColumn:
-		v, ok := value.(int16)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddColumn(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Seat numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *SeatMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *SeatMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *SeatMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Seat nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *SeatMutation) ResetField(name string) error {
-	switch name {
-	case seat.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case seat.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	case seat.FieldRow:
-		m.ResetRow()
-		return nil
-	case seat.FieldColumn:
-		m.ResetColumn()
-		return nil
-	}
-	return fmt.Errorf("unknown Seat field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *SeatMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.cinema != nil {
-		edges = append(edges, seat.EdgeCinema)
-	}
-	if m.seat_reservations != nil {
-		edges = append(edges, seat.EdgeSeatReservations)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *SeatMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case seat.EdgeCinema:
-		if id := m.cinema; id != nil {
-			return []ent.Value{*id}
-		}
-	case seat.EdgeSeatReservations:
-		ids := make([]ent.Value, 0, len(m.seat_reservations))
-		for id := range m.seat_reservations {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *SeatMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedseat_reservations != nil {
-		edges = append(edges, seat.EdgeSeatReservations)
-	}
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *SeatMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case seat.EdgeSeatReservations:
-		ids := make([]ent.Value, 0, len(m.removedseat_reservations))
-		for id := range m.removedseat_reservations {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *SeatMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedcinema {
-		edges = append(edges, seat.EdgeCinema)
-	}
-	if m.clearedseat_reservations {
-		edges = append(edges, seat.EdgeSeatReservations)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *SeatMutation) EdgeCleared(name string) bool {
-	switch name {
-	case seat.EdgeCinema:
-		return m.clearedcinema
-	case seat.EdgeSeatReservations:
-		return m.clearedseat_reservations
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *SeatMutation) ClearEdge(name string) error {
-	switch name {
-	case seat.EdgeCinema:
-		m.ClearCinema()
-		return nil
-	}
-	return fmt.Errorf("unknown Seat unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *SeatMutation) ResetEdge(name string) error {
-	switch name {
-	case seat.EdgeCinema:
-		m.ResetCinema()
-		return nil
-	case seat.EdgeSeatReservations:
-		m.ResetSeatReservations()
-		return nil
-	}
-	return fmt.Errorf("unknown Seat edge %s", name)
-}
-
 // SeatReservationMutation represents an operation that mutates the SeatReservation nodes in the graph.
 type SeatReservationMutation struct {
 	config
@@ -3059,12 +2170,13 @@ type SeatReservationMutation struct {
 	updated_at       *time.Time
 	reserved_at      *time.Time
 	group_id         *uuid.UUID
-	status           *seatreservation.Status
-	start_time       *time.Time
-	end_time         *time.Time
+	status           *cinema.SeatReservationStatus
+	addstatus        *cinema.SeatReservationStatus
+	row_num          *uint32
+	addrow_num       *int32
+	column_num       *uint32
+	addcolumn_num    *int32
 	clearedFields    map[string]struct{}
-	seat             *int64
-	clearedseat      bool
 	screening        *int64
 	clearedscreening bool
 	done             bool
@@ -3321,12 +2433,13 @@ func (m *SeatReservationMutation) ResetGroupID() {
 }
 
 // SetStatus sets the "status" field.
-func (m *SeatReservationMutation) SetStatus(s seatreservation.Status) {
-	m.status = &s
+func (m *SeatReservationMutation) SetStatus(crs cinema.SeatReservationStatus) {
+	m.status = &crs
+	m.addstatus = nil
 }
 
 // Status returns the value of the "status" field in the mutation.
-func (m *SeatReservationMutation) Status() (r seatreservation.Status, exists bool) {
+func (m *SeatReservationMutation) Status() (r cinema.SeatReservationStatus, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -3337,7 +2450,7 @@ func (m *SeatReservationMutation) Status() (r seatreservation.Status, exists boo
 // OldStatus returns the old "status" field's value of the SeatReservation entity.
 // If the SeatReservation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeatReservationMutation) OldStatus(ctx context.Context) (v seatreservation.Status, err error) {
+func (m *SeatReservationMutation) OldStatus(ctx context.Context) (v cinema.SeatReservationStatus, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -3351,120 +2464,140 @@ func (m *SeatReservationMutation) OldStatus(ctx context.Context) (v seatreservat
 	return oldValue.Status, nil
 }
 
+// AddStatus adds crs to the "status" field.
+func (m *SeatReservationMutation) AddStatus(crs cinema.SeatReservationStatus) {
+	if m.addstatus != nil {
+		*m.addstatus += crs
+	} else {
+		m.addstatus = &crs
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *SeatReservationMutation) AddedStatus() (r cinema.SeatReservationStatus, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetStatus resets all changes to the "status" field.
 func (m *SeatReservationMutation) ResetStatus() {
 	m.status = nil
+	m.addstatus = nil
 }
 
-// SetStartTime sets the "start_time" field.
-func (m *SeatReservationMutation) SetStartTime(t time.Time) {
-	m.start_time = &t
+// SetRowNum sets the "row_num" field.
+func (m *SeatReservationMutation) SetRowNum(u uint32) {
+	m.row_num = &u
+	m.addrow_num = nil
 }
 
-// StartTime returns the value of the "start_time" field in the mutation.
-func (m *SeatReservationMutation) StartTime() (r time.Time, exists bool) {
-	v := m.start_time
+// RowNum returns the value of the "row_num" field in the mutation.
+func (m *SeatReservationMutation) RowNum() (r uint32, exists bool) {
+	v := m.row_num
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStartTime returns the old "start_time" field's value of the SeatReservation entity.
+// OldRowNum returns the old "row_num" field's value of the SeatReservation entity.
 // If the SeatReservation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeatReservationMutation) OldStartTime(ctx context.Context) (v time.Time, err error) {
+func (m *SeatReservationMutation) OldRowNum(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStartTime is only allowed on UpdateOne operations")
+		return v, errors.New("OldRowNum is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStartTime requires an ID field in the mutation")
+		return v, errors.New("OldRowNum requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStartTime: %w", err)
+		return v, fmt.Errorf("querying old value for OldRowNum: %w", err)
 	}
-	return oldValue.StartTime, nil
+	return oldValue.RowNum, nil
 }
 
-// ResetStartTime resets all changes to the "start_time" field.
-func (m *SeatReservationMutation) ResetStartTime() {
-	m.start_time = nil
+// AddRowNum adds u to the "row_num" field.
+func (m *SeatReservationMutation) AddRowNum(u int32) {
+	if m.addrow_num != nil {
+		*m.addrow_num += u
+	} else {
+		m.addrow_num = &u
+	}
 }
 
-// SetEndTime sets the "end_time" field.
-func (m *SeatReservationMutation) SetEndTime(t time.Time) {
-	m.end_time = &t
-}
-
-// EndTime returns the value of the "end_time" field in the mutation.
-func (m *SeatReservationMutation) EndTime() (r time.Time, exists bool) {
-	v := m.end_time
+// AddedRowNum returns the value that was added to the "row_num" field in this mutation.
+func (m *SeatReservationMutation) AddedRowNum() (r int32, exists bool) {
+	v := m.addrow_num
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldEndTime returns the old "end_time" field's value of the SeatReservation entity.
+// ResetRowNum resets all changes to the "row_num" field.
+func (m *SeatReservationMutation) ResetRowNum() {
+	m.row_num = nil
+	m.addrow_num = nil
+}
+
+// SetColumnNum sets the "column_num" field.
+func (m *SeatReservationMutation) SetColumnNum(u uint32) {
+	m.column_num = &u
+	m.addcolumn_num = nil
+}
+
+// ColumnNum returns the value of the "column_num" field in the mutation.
+func (m *SeatReservationMutation) ColumnNum() (r uint32, exists bool) {
+	v := m.column_num
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColumnNum returns the old "column_num" field's value of the SeatReservation entity.
 // If the SeatReservation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SeatReservationMutation) OldEndTime(ctx context.Context) (v time.Time, err error) {
+func (m *SeatReservationMutation) OldColumnNum(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEndTime is only allowed on UpdateOne operations")
+		return v, errors.New("OldColumnNum is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEndTime requires an ID field in the mutation")
+		return v, errors.New("OldColumnNum requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEndTime: %w", err)
+		return v, fmt.Errorf("querying old value for OldColumnNum: %w", err)
 	}
-	return oldValue.EndTime, nil
+	return oldValue.ColumnNum, nil
 }
 
-// ResetEndTime resets all changes to the "end_time" field.
-func (m *SeatReservationMutation) ResetEndTime() {
-	m.end_time = nil
-}
-
-// SetSeatID sets the "seat" edge to the Seat entity by id.
-func (m *SeatReservationMutation) SetSeatID(id int64) {
-	m.seat = &id
-}
-
-// ClearSeat clears the "seat" edge to the Seat entity.
-func (m *SeatReservationMutation) ClearSeat() {
-	m.clearedseat = true
-}
-
-// SeatCleared reports if the "seat" edge to the Seat entity was cleared.
-func (m *SeatReservationMutation) SeatCleared() bool {
-	return m.clearedseat
-}
-
-// SeatID returns the "seat" edge ID in the mutation.
-func (m *SeatReservationMutation) SeatID() (id int64, exists bool) {
-	if m.seat != nil {
-		return *m.seat, true
+// AddColumnNum adds u to the "column_num" field.
+func (m *SeatReservationMutation) AddColumnNum(u int32) {
+	if m.addcolumn_num != nil {
+		*m.addcolumn_num += u
+	} else {
+		m.addcolumn_num = &u
 	}
-	return
 }
 
-// SeatIDs returns the "seat" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// SeatID instead. It exists only for internal usage by the builders.
-func (m *SeatReservationMutation) SeatIDs() (ids []int64) {
-	if id := m.seat; id != nil {
-		ids = append(ids, *id)
+// AddedColumnNum returns the value that was added to the "column_num" field in this mutation.
+func (m *SeatReservationMutation) AddedColumnNum() (r int32, exists bool) {
+	v := m.addcolumn_num
+	if v == nil {
+		return
 	}
-	return
+	return *v, true
 }
 
-// ResetSeat resets all changes to the "seat" edge.
-func (m *SeatReservationMutation) ResetSeat() {
-	m.seat = nil
-	m.clearedseat = false
+// ResetColumnNum resets all changes to the "column_num" field.
+func (m *SeatReservationMutation) ResetColumnNum() {
+	m.column_num = nil
+	m.addcolumn_num = nil
 }
 
 // SetScreeningID sets the "screening" edge to the Screening entity by id.
@@ -3556,11 +2689,11 @@ func (m *SeatReservationMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, seatreservation.FieldStatus)
 	}
-	if m.start_time != nil {
-		fields = append(fields, seatreservation.FieldStartTime)
+	if m.row_num != nil {
+		fields = append(fields, seatreservation.FieldRowNum)
 	}
-	if m.end_time != nil {
-		fields = append(fields, seatreservation.FieldEndTime)
+	if m.column_num != nil {
+		fields = append(fields, seatreservation.FieldColumnNum)
 	}
 	return fields
 }
@@ -3580,10 +2713,10 @@ func (m *SeatReservationMutation) Field(name string) (ent.Value, bool) {
 		return m.GroupID()
 	case seatreservation.FieldStatus:
 		return m.Status()
-	case seatreservation.FieldStartTime:
-		return m.StartTime()
-	case seatreservation.FieldEndTime:
-		return m.EndTime()
+	case seatreservation.FieldRowNum:
+		return m.RowNum()
+	case seatreservation.FieldColumnNum:
+		return m.ColumnNum()
 	}
 	return nil, false
 }
@@ -3603,10 +2736,10 @@ func (m *SeatReservationMutation) OldField(ctx context.Context, name string) (en
 		return m.OldGroupID(ctx)
 	case seatreservation.FieldStatus:
 		return m.OldStatus(ctx)
-	case seatreservation.FieldStartTime:
-		return m.OldStartTime(ctx)
-	case seatreservation.FieldEndTime:
-		return m.OldEndTime(ctx)
+	case seatreservation.FieldRowNum:
+		return m.OldRowNum(ctx)
+	case seatreservation.FieldColumnNum:
+		return m.OldColumnNum(ctx)
 	}
 	return nil, fmt.Errorf("unknown SeatReservation field %s", name)
 }
@@ -3645,25 +2778,25 @@ func (m *SeatReservationMutation) SetField(name string, value ent.Value) error {
 		m.SetGroupID(v)
 		return nil
 	case seatreservation.FieldStatus:
-		v, ok := value.(seatreservation.Status)
+		v, ok := value.(cinema.SeatReservationStatus)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
 		return nil
-	case seatreservation.FieldStartTime:
-		v, ok := value.(time.Time)
+	case seatreservation.FieldRowNum:
+		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetStartTime(v)
+		m.SetRowNum(v)
 		return nil
-	case seatreservation.FieldEndTime:
-		v, ok := value.(time.Time)
+	case seatreservation.FieldColumnNum:
+		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetEndTime(v)
+		m.SetColumnNum(v)
 		return nil
 	}
 	return fmt.Errorf("unknown SeatReservation field %s", name)
@@ -3672,13 +2805,31 @@ func (m *SeatReservationMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *SeatReservationMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, seatreservation.FieldStatus)
+	}
+	if m.addrow_num != nil {
+		fields = append(fields, seatreservation.FieldRowNum)
+	}
+	if m.addcolumn_num != nil {
+		fields = append(fields, seatreservation.FieldColumnNum)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *SeatReservationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case seatreservation.FieldStatus:
+		return m.AddedStatus()
+	case seatreservation.FieldRowNum:
+		return m.AddedRowNum()
+	case seatreservation.FieldColumnNum:
+		return m.AddedColumnNum()
+	}
 	return nil, false
 }
 
@@ -3687,6 +2838,27 @@ func (m *SeatReservationMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *SeatReservationMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case seatreservation.FieldStatus:
+		v, ok := value.(cinema.SeatReservationStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
+	case seatreservation.FieldRowNum:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRowNum(v)
+		return nil
+	case seatreservation.FieldColumnNum:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddColumnNum(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeatReservation numeric field %s", name)
 }
@@ -3729,11 +2901,11 @@ func (m *SeatReservationMutation) ResetField(name string) error {
 	case seatreservation.FieldStatus:
 		m.ResetStatus()
 		return nil
-	case seatreservation.FieldStartTime:
-		m.ResetStartTime()
+	case seatreservation.FieldRowNum:
+		m.ResetRowNum()
 		return nil
-	case seatreservation.FieldEndTime:
-		m.ResetEndTime()
+	case seatreservation.FieldColumnNum:
+		m.ResetColumnNum()
 		return nil
 	}
 	return fmt.Errorf("unknown SeatReservation field %s", name)
@@ -3741,10 +2913,7 @@ func (m *SeatReservationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeatReservationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.seat != nil {
-		edges = append(edges, seatreservation.EdgeSeat)
-	}
+	edges := make([]string, 0, 1)
 	if m.screening != nil {
 		edges = append(edges, seatreservation.EdgeScreening)
 	}
@@ -3755,10 +2924,6 @@ func (m *SeatReservationMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *SeatReservationMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case seatreservation.EdgeSeat:
-		if id := m.seat; id != nil {
-			return []ent.Value{*id}
-		}
 	case seatreservation.EdgeScreening:
 		if id := m.screening; id != nil {
 			return []ent.Value{*id}
@@ -3769,7 +2934,7 @@ func (m *SeatReservationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeatReservationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -3781,10 +2946,7 @@ func (m *SeatReservationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeatReservationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedseat {
-		edges = append(edges, seatreservation.EdgeSeat)
-	}
+	edges := make([]string, 0, 1)
 	if m.clearedscreening {
 		edges = append(edges, seatreservation.EdgeScreening)
 	}
@@ -3795,8 +2957,6 @@ func (m *SeatReservationMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *SeatReservationMutation) EdgeCleared(name string) bool {
 	switch name {
-	case seatreservation.EdgeSeat:
-		return m.clearedseat
 	case seatreservation.EdgeScreening:
 		return m.clearedscreening
 	}
@@ -3807,9 +2967,6 @@ func (m *SeatReservationMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *SeatReservationMutation) ClearEdge(name string) error {
 	switch name {
-	case seatreservation.EdgeSeat:
-		m.ClearSeat()
-		return nil
 	case seatreservation.EdgeScreening:
 		m.ClearScreening()
 		return nil
@@ -3821,9 +2978,6 @@ func (m *SeatReservationMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *SeatReservationMutation) ResetEdge(name string) error {
 	switch name {
-	case seatreservation.EdgeSeat:
-		m.ResetSeat()
-		return nil
 	case seatreservation.EdgeScreening:
 		m.ResetScreening()
 		return nil

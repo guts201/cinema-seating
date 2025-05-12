@@ -44,18 +44,6 @@ func (f ScreeningFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ScreeningMutation", m)
 }
 
-// The SeatFunc type is an adapter to allow the use of ordinary
-// function as Seat mutator.
-type SeatFunc func(context.Context, *ent.SeatMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f SeatFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.SeatMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeatMutation", m)
-}
-
 // The SeatReservationFunc type is an adapter to allow the use of ordinary
 // function as SeatReservation mutator.
 type SeatReservationFunc func(context.Context, *ent.SeatReservationMutation) (ent.Value, error)

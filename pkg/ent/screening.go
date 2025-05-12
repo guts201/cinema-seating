@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	entcinema "cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/screening"
 	"fmt"
@@ -27,8 +27,6 @@ type Screening struct {
 	Title string `json:"title,omitempty"`
 	// StartTime holds the value of the "start_time" field.
 	StartTime time.Time `json:"start_time,omitempty"`
-	// MinDistance holds the value of the "min_distance" field.
-	MinDistance int32 `json:"min_distance,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ScreeningQuery when eager-loading is set.
 	Edges             ScreeningEdges `json:"edges"`
@@ -67,7 +65,7 @@ func (e ScreeningEdges) CinemaOrErr() (*Cinema, error) {
 	if e.Cinema != nil {
 		return e.Cinema, nil
 	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: cinema.Label}
+		return nil, &NotFoundError{label: entcinema.Label}
 	}
 	return nil, &NotLoadedError{edge: "cinema"}
 }
@@ -86,7 +84,7 @@ func (*Screening) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case screening.FieldID, screening.FieldMinDistance:
+		case screening.FieldID:
 			values[i] = new(sql.NullInt64)
 		case screening.FieldTitle:
 			values[i] = new(sql.NullString)
@@ -140,12 +138,6 @@ func (s *Screening) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field start_time", values[i])
 			} else if value.Valid {
 				s.StartTime = value.Time
-			}
-		case screening.FieldMinDistance:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field min_distance", values[i])
-			} else if value.Valid {
-				s.MinDistance = int32(value.Int64)
 			}
 		case screening.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -223,9 +215,6 @@ func (s *Screening) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("start_time=")
 	builder.WriteString(s.StartTime.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("min_distance=")
-	builder.WriteString(fmt.Sprintf("%v", s.MinDistance))
 	builder.WriteByte(')')
 	return builder.String()
 }

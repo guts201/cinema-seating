@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	entcinema "cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/screening"
 	"cinema/pkg/ent/seatreservation"
@@ -62,12 +62,6 @@ func (sc *ScreeningCreate) SetTitle(s string) *ScreeningCreate {
 // SetStartTime sets the "start_time" field.
 func (sc *ScreeningCreate) SetStartTime(t time.Time) *ScreeningCreate {
 	sc.mutation.SetStartTime(t)
-	return sc
-}
-
-// SetMinDistance sets the "min_distance" field.
-func (sc *ScreeningCreate) SetMinDistance(i int32) *ScreeningCreate {
-	sc.mutation.SetMinDistance(i)
 	return sc
 }
 
@@ -194,14 +188,6 @@ func (sc *ScreeningCreate) check() error {
 	if _, ok := sc.mutation.StartTime(); !ok {
 		return &ValidationError{Name: "start_time", err: errors.New(`ent: missing required field "Screening.start_time"`)}
 	}
-	if _, ok := sc.mutation.MinDistance(); !ok {
-		return &ValidationError{Name: "min_distance", err: errors.New(`ent: missing required field "Screening.min_distance"`)}
-	}
-	if v, ok := sc.mutation.MinDistance(); ok {
-		if err := screening.MinDistanceValidator(v); err != nil {
-			return &ValidationError{Name: "min_distance", err: fmt.Errorf(`ent: validator failed for field "Screening.min_distance": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -251,10 +237,6 @@ func (sc *ScreeningCreate) createSpec() (*Screening, *sqlgraph.CreateSpec) {
 		_spec.SetField(screening.FieldStartTime, field.TypeTime, value)
 		_node.StartTime = value
 	}
-	if value, ok := sc.mutation.MinDistance(); ok {
-		_spec.SetField(screening.FieldMinDistance, field.TypeInt32, value)
-		_node.MinDistance = value
-	}
 	if nodes := sc.mutation.MovieIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -280,7 +262,7 @@ func (sc *ScreeningCreate) createSpec() (*Screening, *sqlgraph.CreateSpec) {
 			Columns: []string{screening.CinemaColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(entcinema.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -393,24 +375,6 @@ func (u *ScreeningUpsert) UpdateStartTime() *ScreeningUpsert {
 	return u
 }
 
-// SetMinDistance sets the "min_distance" field.
-func (u *ScreeningUpsert) SetMinDistance(v int32) *ScreeningUpsert {
-	u.Set(screening.FieldMinDistance, v)
-	return u
-}
-
-// UpdateMinDistance sets the "min_distance" field to the value that was provided on create.
-func (u *ScreeningUpsert) UpdateMinDistance() *ScreeningUpsert {
-	u.SetExcluded(screening.FieldMinDistance)
-	return u
-}
-
-// AddMinDistance adds v to the "min_distance" field.
-func (u *ScreeningUpsert) AddMinDistance(v int32) *ScreeningUpsert {
-	u.Add(screening.FieldMinDistance, v)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -501,27 +465,6 @@ func (u *ScreeningUpsertOne) SetStartTime(v time.Time) *ScreeningUpsertOne {
 func (u *ScreeningUpsertOne) UpdateStartTime() *ScreeningUpsertOne {
 	return u.Update(func(s *ScreeningUpsert) {
 		s.UpdateStartTime()
-	})
-}
-
-// SetMinDistance sets the "min_distance" field.
-func (u *ScreeningUpsertOne) SetMinDistance(v int32) *ScreeningUpsertOne {
-	return u.Update(func(s *ScreeningUpsert) {
-		s.SetMinDistance(v)
-	})
-}
-
-// AddMinDistance adds v to the "min_distance" field.
-func (u *ScreeningUpsertOne) AddMinDistance(v int32) *ScreeningUpsertOne {
-	return u.Update(func(s *ScreeningUpsert) {
-		s.AddMinDistance(v)
-	})
-}
-
-// UpdateMinDistance sets the "min_distance" field to the value that was provided on create.
-func (u *ScreeningUpsertOne) UpdateMinDistance() *ScreeningUpsertOne {
-	return u.Update(func(s *ScreeningUpsert) {
-		s.UpdateMinDistance()
 	})
 }
 
@@ -781,27 +724,6 @@ func (u *ScreeningUpsertBulk) SetStartTime(v time.Time) *ScreeningUpsertBulk {
 func (u *ScreeningUpsertBulk) UpdateStartTime() *ScreeningUpsertBulk {
 	return u.Update(func(s *ScreeningUpsert) {
 		s.UpdateStartTime()
-	})
-}
-
-// SetMinDistance sets the "min_distance" field.
-func (u *ScreeningUpsertBulk) SetMinDistance(v int32) *ScreeningUpsertBulk {
-	return u.Update(func(s *ScreeningUpsert) {
-		s.SetMinDistance(v)
-	})
-}
-
-// AddMinDistance adds v to the "min_distance" field.
-func (u *ScreeningUpsertBulk) AddMinDistance(v int32) *ScreeningUpsertBulk {
-	return u.Update(func(s *ScreeningUpsert) {
-		s.AddMinDistance(v)
-	})
-}
-
-// UpdateMinDistance sets the "min_distance" field to the value that was provided on create.
-func (u *ScreeningUpsertBulk) UpdateMinDistance() *ScreeningUpsertBulk {
-	return u.Update(func(s *ScreeningUpsert) {
-		s.UpdateMinDistance()
 	})
 }
 

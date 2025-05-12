@@ -3,13 +3,14 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/predicate"
 	"context"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+
+	entcinema "cinema/pkg/ent/cinema"
 )
 
 // CinemaDelete is the builder for deleting a Cinema entity.
@@ -40,7 +41,7 @@ func (cd *CinemaDelete) ExecX(ctx context.Context) int {
 }
 
 func (cd *CinemaDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(cinema.Table, sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewDeleteSpec(entcinema.Table, sqlgraph.NewFieldSpec(entcinema.FieldID, field.TypeInt64))
 	if ps := cd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -74,7 +75,7 @@ func (cdo *CinemaDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{cinema.Label}
+		return &NotFoundError{entcinema.Label}
 	default:
 		return nil
 	}

@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	entcinema "cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/predicate"
 	"cinema/pkg/ent/screening"
@@ -63,27 +63,6 @@ func (su *ScreeningUpdate) SetNillableStartTime(t *time.Time) *ScreeningUpdate {
 	if t != nil {
 		su.SetStartTime(*t)
 	}
-	return su
-}
-
-// SetMinDistance sets the "min_distance" field.
-func (su *ScreeningUpdate) SetMinDistance(i int32) *ScreeningUpdate {
-	su.mutation.ResetMinDistance()
-	su.mutation.SetMinDistance(i)
-	return su
-}
-
-// SetNillableMinDistance sets the "min_distance" field if the given value is not nil.
-func (su *ScreeningUpdate) SetNillableMinDistance(i *int32) *ScreeningUpdate {
-	if i != nil {
-		su.SetMinDistance(*i)
-	}
-	return su
-}
-
-// AddMinDistance adds i to the "min_distance" field.
-func (su *ScreeningUpdate) AddMinDistance(i int32) *ScreeningUpdate {
-	su.mutation.AddMinDistance(i)
 	return su
 }
 
@@ -221,11 +200,6 @@ func (su *ScreeningUpdate) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Screening.title": %w`, err)}
 		}
 	}
-	if v, ok := su.mutation.MinDistance(); ok {
-		if err := screening.MinDistanceValidator(v); err != nil {
-			return &ValidationError{Name: "min_distance", err: fmt.Errorf(`ent: validator failed for field "Screening.min_distance": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -255,12 +229,6 @@ func (su *ScreeningUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := su.mutation.StartTime(); ok {
 		_spec.SetField(screening.FieldStartTime, field.TypeTime, value)
-	}
-	if value, ok := su.mutation.MinDistance(); ok {
-		_spec.SetField(screening.FieldMinDistance, field.TypeInt32, value)
-	}
-	if value, ok := su.mutation.AddedMinDistance(); ok {
-		_spec.AddField(screening.FieldMinDistance, field.TypeInt32, value)
 	}
 	if su.mutation.MovieCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -299,7 +267,7 @@ func (su *ScreeningUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{screening.CinemaColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(entcinema.FieldID, field.TypeInt64),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -312,7 +280,7 @@ func (su *ScreeningUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{screening.CinemaColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(entcinema.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -418,27 +386,6 @@ func (suo *ScreeningUpdateOne) SetNillableStartTime(t *time.Time) *ScreeningUpda
 	if t != nil {
 		suo.SetStartTime(*t)
 	}
-	return suo
-}
-
-// SetMinDistance sets the "min_distance" field.
-func (suo *ScreeningUpdateOne) SetMinDistance(i int32) *ScreeningUpdateOne {
-	suo.mutation.ResetMinDistance()
-	suo.mutation.SetMinDistance(i)
-	return suo
-}
-
-// SetNillableMinDistance sets the "min_distance" field if the given value is not nil.
-func (suo *ScreeningUpdateOne) SetNillableMinDistance(i *int32) *ScreeningUpdateOne {
-	if i != nil {
-		suo.SetMinDistance(*i)
-	}
-	return suo
-}
-
-// AddMinDistance adds i to the "min_distance" field.
-func (suo *ScreeningUpdateOne) AddMinDistance(i int32) *ScreeningUpdateOne {
-	suo.mutation.AddMinDistance(i)
 	return suo
 }
 
@@ -589,11 +536,6 @@ func (suo *ScreeningUpdateOne) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Screening.title": %w`, err)}
 		}
 	}
-	if v, ok := suo.mutation.MinDistance(); ok {
-		if err := screening.MinDistanceValidator(v); err != nil {
-			return &ValidationError{Name: "min_distance", err: fmt.Errorf(`ent: validator failed for field "Screening.min_distance": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -641,12 +583,6 @@ func (suo *ScreeningUpdateOne) sqlSave(ctx context.Context) (_node *Screening, e
 	if value, ok := suo.mutation.StartTime(); ok {
 		_spec.SetField(screening.FieldStartTime, field.TypeTime, value)
 	}
-	if value, ok := suo.mutation.MinDistance(); ok {
-		_spec.SetField(screening.FieldMinDistance, field.TypeInt32, value)
-	}
-	if value, ok := suo.mutation.AddedMinDistance(); ok {
-		_spec.AddField(screening.FieldMinDistance, field.TypeInt32, value)
-	}
 	if suo.mutation.MovieCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -684,7 +620,7 @@ func (suo *ScreeningUpdateOne) sqlSave(ctx context.Context) (_node *Screening, e
 			Columns: []string{screening.CinemaColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(entcinema.FieldID, field.TypeInt64),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -697,7 +633,7 @@ func (suo *ScreeningUpdateOne) sqlSave(ctx context.Context) (_node *Screening, e
 			Columns: []string{screening.CinemaColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(entcinema.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

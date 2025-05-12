@@ -16,7 +16,6 @@ func (Screening) Fields() []ent.Field {
 		field.String("title").
 			NotEmpty(),
 		field.Time("start_time"),
-		field.Int32("min_distance").Min(0),
 	}
 }
 

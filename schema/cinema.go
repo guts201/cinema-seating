@@ -29,7 +29,6 @@ func (Cinema) Mixin() []ent.Mixin {
 
 func (Cinema) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("seats", Seat.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("screenings", Screening.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

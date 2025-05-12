@@ -23,11 +23,17 @@ type Screening struct {
 	ID          int
 	MovieID     int
 	StartTime   time.Time
-	Rows        int
-	Columns     int
 	MinDistance int
+	Row         int
+	Column      int
 }
 type Seat struct {
-	Row      int
-	Column   int
+	Row    int
+	Column int
+}
+
+type SeatWithId struct {
+	Row    int
+	Column int
+	ID     int
 }

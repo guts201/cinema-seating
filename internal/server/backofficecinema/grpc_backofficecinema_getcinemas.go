@@ -17,9 +17,9 @@ func (s *backofficeCinemaServer) GetCinemas(ctx context.Context, request *cinema
 		return nil, err
 	}
 
-	cinemas := mapper.ToProtoCinemas(_cinemas)
+	cinemasRes := mapper.ToProtoCinemas(_cinemas)
 
 	return &cinema.GetCinemasResponse{
-		Cinemas: cinemas,
+		Cinemas: cinemasRes,
 	}, nil
 }

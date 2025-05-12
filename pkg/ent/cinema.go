@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	entcinema "cinema/pkg/ent/cinema"
 	"fmt"
 	"strings"
 	"time"
@@ -37,28 +37,17 @@ type Cinema struct {
 
 // CinemaEdges holds the relations/edges for other nodes in the graph.
 type CinemaEdges struct {
-	// Seats holds the value of the seats edge.
-	Seats []*Seat `json:"seats,omitempty"`
 	// Screenings holds the value of the screenings edge.
 	Screenings []*Screening `json:"screenings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
-}
-
-// SeatsOrErr returns the Seats value or an error if the edge
-// was not loaded in eager-loading.
-func (e CinemaEdges) SeatsOrErr() ([]*Seat, error) {
-	if e.loadedTypes[0] {
-		return e.Seats, nil
-	}
-	return nil, &NotLoadedError{edge: "seats"}
+	loadedTypes [1]bool
 }
 
 // ScreeningsOrErr returns the Screenings value or an error if the edge
 // was not loaded in eager-loading.
 func (e CinemaEdges) ScreeningsOrErr() ([]*Screening, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		return e.Screenings, nil
 	}
 	return nil, &NotLoadedError{edge: "screenings"}
@@ -69,11 +58,11 @@ func (*Cinema) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case cinema.FieldID, cinema.FieldNumRow, cinema.FieldNumColumn, cinema.FieldMinDistance:
+		case entcinema.FieldID, entcinema.FieldNumRow, entcinema.FieldNumColumn, entcinema.FieldMinDistance:
 			values[i] = new(sql.NullInt64)
-		case cinema.FieldName:
+		case entcinema.FieldName:
 			values[i] = new(sql.NullString)
-		case cinema.FieldCreatedAt, cinema.FieldUpdatedAt:
+		case entcinema.FieldCreatedAt, entcinema.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -90,43 +79,43 @@ func (c *Cinema) assignValues(columns []string, values []any) error {
 	}
 	for i := range columns {
 		switch columns[i] {
-		case cinema.FieldID:
+		case entcinema.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			c.ID = int64(value.Int64)
-		case cinema.FieldCreatedAt:
+		case entcinema.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				c.CreatedAt = value.Time
 			}
-		case cinema.FieldUpdatedAt:
+		case entcinema.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				c.UpdatedAt = value.Time
 			}
-		case cinema.FieldNumRow:
+		case entcinema.FieldNumRow:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field num_row", values[i])
 			} else if value.Valid {
 				c.NumRow = uint32(value.Int64)
 			}
-		case cinema.FieldNumColumn:
+		case entcinema.FieldNumColumn:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field num_column", values[i])
 			} else if value.Valid {
 				c.NumColumn = uint32(value.Int64)
 			}
-		case cinema.FieldName:
+		case entcinema.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				c.Name = value.String
 			}
-		case cinema.FieldMinDistance:
+		case entcinema.FieldMinDistance:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field min_distance", values[i])
 			} else if value.Valid {
@@ -143,11 +132,6 @@ func (c *Cinema) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (c *Cinema) Value(name string) (ent.Value, error) {
 	return c.selectValues.Get(name)
-}
-
-// QuerySeats queries the "seats" edge of the Cinema entity.
-func (c *Cinema) QuerySeats() *SeatQuery {
-	return NewCinemaClient(c.config).QuerySeats(c)
 }
 
 // QueryScreenings queries the "screenings" edge of the Cinema entity.

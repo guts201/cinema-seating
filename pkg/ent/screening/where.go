@@ -75,11 +75,6 @@ func StartTime(v time.Time) predicate.Screening {
 	return predicate.Screening(sql.FieldEQ(FieldStartTime, v))
 }
 
-// MinDistance applies equality check predicate on the "min_distance" field. It's identical to MinDistanceEQ.
-func MinDistance(v int32) predicate.Screening {
-	return predicate.Screening(sql.FieldEQ(FieldMinDistance, v))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Screening {
 	return predicate.Screening(sql.FieldEQ(FieldCreatedAt, v))
@@ -263,46 +258,6 @@ func StartTimeLT(v time.Time) predicate.Screening {
 // StartTimeLTE applies the LTE predicate on the "start_time" field.
 func StartTimeLTE(v time.Time) predicate.Screening {
 	return predicate.Screening(sql.FieldLTE(FieldStartTime, v))
-}
-
-// MinDistanceEQ applies the EQ predicate on the "min_distance" field.
-func MinDistanceEQ(v int32) predicate.Screening {
-	return predicate.Screening(sql.FieldEQ(FieldMinDistance, v))
-}
-
-// MinDistanceNEQ applies the NEQ predicate on the "min_distance" field.
-func MinDistanceNEQ(v int32) predicate.Screening {
-	return predicate.Screening(sql.FieldNEQ(FieldMinDistance, v))
-}
-
-// MinDistanceIn applies the In predicate on the "min_distance" field.
-func MinDistanceIn(vs ...int32) predicate.Screening {
-	return predicate.Screening(sql.FieldIn(FieldMinDistance, vs...))
-}
-
-// MinDistanceNotIn applies the NotIn predicate on the "min_distance" field.
-func MinDistanceNotIn(vs ...int32) predicate.Screening {
-	return predicate.Screening(sql.FieldNotIn(FieldMinDistance, vs...))
-}
-
-// MinDistanceGT applies the GT predicate on the "min_distance" field.
-func MinDistanceGT(v int32) predicate.Screening {
-	return predicate.Screening(sql.FieldGT(FieldMinDistance, v))
-}
-
-// MinDistanceGTE applies the GTE predicate on the "min_distance" field.
-func MinDistanceGTE(v int32) predicate.Screening {
-	return predicate.Screening(sql.FieldGTE(FieldMinDistance, v))
-}
-
-// MinDistanceLT applies the LT predicate on the "min_distance" field.
-func MinDistanceLT(v int32) predicate.Screening {
-	return predicate.Screening(sql.FieldLT(FieldMinDistance, v))
-}
-
-// MinDistanceLTE applies the LTE predicate on the "min_distance" field.
-func MinDistanceLTE(v int32) predicate.Screening {
-	return predicate.Screening(sql.FieldLTE(FieldMinDistance, v))
 }
 
 // HasMovie applies the HasEdge predicate on the "movie" edge.

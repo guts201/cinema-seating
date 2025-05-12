@@ -3,7 +3,7 @@
 package seatreservation
 
 import (
-	"fmt"
+	cinema "cinema/api"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -25,23 +25,14 @@ const (
 	FieldGroupID = "group_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-	// FieldStartTime holds the string denoting the start_time field in the database.
-	FieldStartTime = "start_time"
-	// FieldEndTime holds the string denoting the end_time field in the database.
-	FieldEndTime = "end_time"
-	// EdgeSeat holds the string denoting the seat edge name in mutations.
-	EdgeSeat = "seat"
+	// FieldRowNum holds the string denoting the row_num field in the database.
+	FieldRowNum = "row_num"
+	// FieldColumnNum holds the string denoting the column_num field in the database.
+	FieldColumnNum = "column_num"
 	// EdgeScreening holds the string denoting the screening edge name in mutations.
 	EdgeScreening = "screening"
 	// Table holds the table name of the seatreservation in the database.
 	Table = "seat_reservations"
-	// SeatTable is the table that holds the seat relation/edge.
-	SeatTable = "seat_reservations"
-	// SeatInverseTable is the table name for the Seat entity.
-	// It exists in this package in order to avoid circular dependency with the "seat" package.
-	SeatInverseTable = "seats"
-	// SeatColumn is the table column denoting the seat relation/edge.
-	SeatColumn = "seat_seat_reservations"
 	// ScreeningTable is the table that holds the screening relation/edge.
 	ScreeningTable = "seat_reservations"
 	// ScreeningInverseTable is the table name for the Screening entity.
@@ -59,15 +50,14 @@ var Columns = []string{
 	FieldReservedAt,
 	FieldGroupID,
 	FieldStatus,
-	FieldStartTime,
-	FieldEndTime,
+	FieldRowNum,
+	FieldColumnNum,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "seat_reservations"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"screening_seat_reservations",
-	"seat_seat_reservations",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -94,38 +84,13 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultReservedAt holds the default value on creation for the "reserved_at" field.
 	DefaultReservedAt func() time.Time
-	// DefaultStartTime holds the default value on creation for the "start_time" field.
-	DefaultStartTime func() time.Time
-	// DefaultEndTime holds the default value on creation for the "end_time" field.
-	DefaultEndTime time.Time
+	// DefaultStatus holds the default value on creation for the "status" field.
+	DefaultStatus cinema.SeatReservationStatus
+	// RowNumValidator is a validator for the "row_num" field. It is called by the builders before save.
+	RowNumValidator func(uint32) error
+	// ColumnNumValidator is a validator for the "column_num" field. It is called by the builders before save.
+	ColumnNumValidator func(uint32) error
 )
-
-// Status defines the type for the "status" enum field.
-type Status string
-
-// StatusPending is the default value of the Status enum.
-const DefaultStatus = StatusPending
-
-// Status values.
-const (
-	StatusReserved Status = "reserved"
-	StatusCanceled Status = "canceled"
-	StatusPending  Status = "pending"
-)
-
-func (s Status) String() string {
-	return string(s)
-}
-
-// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
-func StatusValidator(s Status) error {
-	switch s {
-	case StatusReserved, StatusCanceled, StatusPending:
-		return nil
-	default:
-		return fmt.Errorf("seatreservation: invalid enum value for status field: %q", s)
-	}
-}
 
 // OrderOption defines the ordering options for the SeatReservation queries.
 type OrderOption func(*sql.Selector)
@@ -160,21 +125,14 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
-// ByStartTime orders the results by the start_time field.
-func ByStartTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStartTime, opts...).ToFunc()
+// ByRowNum orders the results by the row_num field.
+func ByRowNum(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRowNum, opts...).ToFunc()
 }
 
-// ByEndTime orders the results by the end_time field.
-func ByEndTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEndTime, opts...).ToFunc()
-}
-
-// BySeatField orders the results by seat field.
-func BySeatField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSeatStep(), sql.OrderByField(field, opts...))
-	}
+// ByColumnNum orders the results by the column_num field.
+func ByColumnNum(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldColumnNum, opts...).ToFunc()
 }
 
 // ByScreeningField orders the results by screening field.
@@ -182,13 +140,6 @@ func ByScreeningField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newScreeningStep(), sql.OrderByField(field, opts...))
 	}
-}
-func newSeatStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SeatInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, SeatTable, SeatColumn),
-	)
 }
 func newScreeningStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

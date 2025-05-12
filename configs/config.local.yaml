@@ -1,0 +1,22 @@
+listener:
+  tcp:
+    address: 0.0.0.0
+    port: 8080
+    secure: false
+
+logger:
+  pretty: true
+  level: DEBUG
+
+database:
+  auth_method: 2
+  host: localhost
+  port: 3306
+  name: cinema
+  username: root
+  password: "123456"
+
+redis:
+  enabled: false
+  address: ${REDIS_ADDRESS}
+  ttl: 3600

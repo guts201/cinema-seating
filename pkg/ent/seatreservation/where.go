@@ -3,6 +3,7 @@
 package seatreservation
 
 import (
+	cinema "cinema/api"
 	"cinema/pkg/ent/predicate"
 	"time"
 
@@ -76,14 +77,20 @@ func GroupID(v uuid.UUID) predicate.SeatReservation {
 	return predicate.SeatReservation(sql.FieldEQ(FieldGroupID, v))
 }
 
-// StartTime applies equality check predicate on the "start_time" field. It's identical to StartTimeEQ.
-func StartTime(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldEQ(FieldStartTime, v))
+// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
+func Status(v cinema.SeatReservationStatus) predicate.SeatReservation {
+	vc := int32(v)
+	return predicate.SeatReservation(sql.FieldEQ(FieldStatus, vc))
 }
 
-// EndTime applies equality check predicate on the "end_time" field. It's identical to EndTimeEQ.
-func EndTime(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldEQ(FieldEndTime, v))
+// RowNum applies equality check predicate on the "row_num" field. It's identical to RowNumEQ.
+func RowNum(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldEQ(FieldRowNum, v))
+}
+
+// ColumnNum applies equality check predicate on the "column_num" field. It's identical to ColumnNumEQ.
+func ColumnNum(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldEQ(FieldColumnNum, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -247,126 +254,137 @@ func GroupIDLTE(v uuid.UUID) predicate.SeatReservation {
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v Status) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldEQ(FieldStatus, v))
+func StatusEQ(v cinema.SeatReservationStatus) predicate.SeatReservation {
+	vc := int32(v)
+	return predicate.SeatReservation(sql.FieldEQ(FieldStatus, vc))
 }
 
 // StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v Status) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldNEQ(FieldStatus, v))
+func StatusNEQ(v cinema.SeatReservationStatus) predicate.SeatReservation {
+	vc := int32(v)
+	return predicate.SeatReservation(sql.FieldNEQ(FieldStatus, vc))
 }
 
 // StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...Status) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldIn(FieldStatus, vs...))
+func StatusIn(vs ...cinema.SeatReservationStatus) predicate.SeatReservation {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int32(vs[i])
+	}
+	return predicate.SeatReservation(sql.FieldIn(FieldStatus, v...))
 }
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...Status) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldNotIn(FieldStatus, vs...))
+func StatusNotIn(vs ...cinema.SeatReservationStatus) predicate.SeatReservation {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int32(vs[i])
+	}
+	return predicate.SeatReservation(sql.FieldNotIn(FieldStatus, v...))
 }
 
-// StartTimeEQ applies the EQ predicate on the "start_time" field.
-func StartTimeEQ(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldEQ(FieldStartTime, v))
+// StatusGT applies the GT predicate on the "status" field.
+func StatusGT(v cinema.SeatReservationStatus) predicate.SeatReservation {
+	vc := int32(v)
+	return predicate.SeatReservation(sql.FieldGT(FieldStatus, vc))
 }
 
-// StartTimeNEQ applies the NEQ predicate on the "start_time" field.
-func StartTimeNEQ(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldNEQ(FieldStartTime, v))
+// StatusGTE applies the GTE predicate on the "status" field.
+func StatusGTE(v cinema.SeatReservationStatus) predicate.SeatReservation {
+	vc := int32(v)
+	return predicate.SeatReservation(sql.FieldGTE(FieldStatus, vc))
 }
 
-// StartTimeIn applies the In predicate on the "start_time" field.
-func StartTimeIn(vs ...time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldIn(FieldStartTime, vs...))
+// StatusLT applies the LT predicate on the "status" field.
+func StatusLT(v cinema.SeatReservationStatus) predicate.SeatReservation {
+	vc := int32(v)
+	return predicate.SeatReservation(sql.FieldLT(FieldStatus, vc))
 }
 
-// StartTimeNotIn applies the NotIn predicate on the "start_time" field.
-func StartTimeNotIn(vs ...time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldNotIn(FieldStartTime, vs...))
+// StatusLTE applies the LTE predicate on the "status" field.
+func StatusLTE(v cinema.SeatReservationStatus) predicate.SeatReservation {
+	vc := int32(v)
+	return predicate.SeatReservation(sql.FieldLTE(FieldStatus, vc))
 }
 
-// StartTimeGT applies the GT predicate on the "start_time" field.
-func StartTimeGT(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldGT(FieldStartTime, v))
+// RowNumEQ applies the EQ predicate on the "row_num" field.
+func RowNumEQ(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldEQ(FieldRowNum, v))
 }
 
-// StartTimeGTE applies the GTE predicate on the "start_time" field.
-func StartTimeGTE(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldGTE(FieldStartTime, v))
+// RowNumNEQ applies the NEQ predicate on the "row_num" field.
+func RowNumNEQ(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldNEQ(FieldRowNum, v))
 }
 
-// StartTimeLT applies the LT predicate on the "start_time" field.
-func StartTimeLT(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldLT(FieldStartTime, v))
+// RowNumIn applies the In predicate on the "row_num" field.
+func RowNumIn(vs ...uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldIn(FieldRowNum, vs...))
 }
 
-// StartTimeLTE applies the LTE predicate on the "start_time" field.
-func StartTimeLTE(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldLTE(FieldStartTime, v))
+// RowNumNotIn applies the NotIn predicate on the "row_num" field.
+func RowNumNotIn(vs ...uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldNotIn(FieldRowNum, vs...))
 }
 
-// EndTimeEQ applies the EQ predicate on the "end_time" field.
-func EndTimeEQ(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldEQ(FieldEndTime, v))
+// RowNumGT applies the GT predicate on the "row_num" field.
+func RowNumGT(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldGT(FieldRowNum, v))
 }
 
-// EndTimeNEQ applies the NEQ predicate on the "end_time" field.
-func EndTimeNEQ(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldNEQ(FieldEndTime, v))
+// RowNumGTE applies the GTE predicate on the "row_num" field.
+func RowNumGTE(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldGTE(FieldRowNum, v))
 }
 
-// EndTimeIn applies the In predicate on the "end_time" field.
-func EndTimeIn(vs ...time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldIn(FieldEndTime, vs...))
+// RowNumLT applies the LT predicate on the "row_num" field.
+func RowNumLT(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldLT(FieldRowNum, v))
 }
 
-// EndTimeNotIn applies the NotIn predicate on the "end_time" field.
-func EndTimeNotIn(vs ...time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldNotIn(FieldEndTime, vs...))
+// RowNumLTE applies the LTE predicate on the "row_num" field.
+func RowNumLTE(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldLTE(FieldRowNum, v))
 }
 
-// EndTimeGT applies the GT predicate on the "end_time" field.
-func EndTimeGT(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldGT(FieldEndTime, v))
+// ColumnNumEQ applies the EQ predicate on the "column_num" field.
+func ColumnNumEQ(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldEQ(FieldColumnNum, v))
 }
 
-// EndTimeGTE applies the GTE predicate on the "end_time" field.
-func EndTimeGTE(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldGTE(FieldEndTime, v))
+// ColumnNumNEQ applies the NEQ predicate on the "column_num" field.
+func ColumnNumNEQ(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldNEQ(FieldColumnNum, v))
 }
 
-// EndTimeLT applies the LT predicate on the "end_time" field.
-func EndTimeLT(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldLT(FieldEndTime, v))
+// ColumnNumIn applies the In predicate on the "column_num" field.
+func ColumnNumIn(vs ...uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldIn(FieldColumnNum, vs...))
 }
 
-// EndTimeLTE applies the LTE predicate on the "end_time" field.
-func EndTimeLTE(v time.Time) predicate.SeatReservation {
-	return predicate.SeatReservation(sql.FieldLTE(FieldEndTime, v))
+// ColumnNumNotIn applies the NotIn predicate on the "column_num" field.
+func ColumnNumNotIn(vs ...uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldNotIn(FieldColumnNum, vs...))
 }
 
-// HasSeat applies the HasEdge predicate on the "seat" edge.
-func HasSeat() predicate.SeatReservation {
-	return predicate.SeatReservation(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, SeatTable, SeatColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
+// ColumnNumGT applies the GT predicate on the "column_num" field.
+func ColumnNumGT(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldGT(FieldColumnNum, v))
 }
 
-// HasSeatWith applies the HasEdge predicate on the "seat" edge with a given conditions (other predicates).
-func HasSeatWith(preds ...predicate.Seat) predicate.SeatReservation {
-	return predicate.SeatReservation(func(s *sql.Selector) {
-		step := newSeatStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
+// ColumnNumGTE applies the GTE predicate on the "column_num" field.
+func ColumnNumGTE(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldGTE(FieldColumnNum, v))
+}
+
+// ColumnNumLT applies the LT predicate on the "column_num" field.
+func ColumnNumLT(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldLT(FieldColumnNum, v))
+}
+
+// ColumnNumLTE applies the LTE predicate on the "column_num" field.
+func ColumnNumLTE(v uint32) predicate.SeatReservation {
+	return predicate.SeatReservation(sql.FieldLTE(FieldColumnNum, v))
 }
 
 // HasScreening applies the HasEdge predicate on the "screening" edge.

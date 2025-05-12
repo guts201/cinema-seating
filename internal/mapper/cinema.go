@@ -34,6 +34,15 @@ func FromProtoCinema(pc *pb.Cinema) entity.Cinema {
 	}
 }
 
+func FromProtoReqCinema(pc *pb.CreateCinemaRequest) entity.Cinema {
+	return entity.Cinema{
+
+		Name:        pc.Name,
+		MinDistance: int(pc.MinDistance),
+		Rows:        int(pc.Rows),
+		Columns:     int(pc.Columns),
+	}
+}
 func ToRepoCinema(c entity.Cinema) *ent.Cinema {
 	return &ent.Cinema{
 		ID:          int64(c.ID),

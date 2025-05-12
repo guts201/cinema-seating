@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	entcinema "cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/predicate"
 	"cinema/pkg/ent/screening"
@@ -103,7 +103,7 @@ func (sq *ScreeningQuery) QueryCinema() *CinemaQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(screening.Table, screening.FieldID, selector),
-			sqlgraph.To(cinema.Table, cinema.FieldID),
+			sqlgraph.To(entcinema.Table, entcinema.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, screening.CinemaTable, screening.CinemaColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
@@ -551,7 +551,7 @@ func (sq *ScreeningQuery) loadCinema(ctx context.Context, query *CinemaQuery, no
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(cinema.IDIn(ids...))
+	query.Where(entcinema.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err

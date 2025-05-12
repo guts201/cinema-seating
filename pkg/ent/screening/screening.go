@@ -22,8 +22,6 @@ const (
 	FieldTitle = "title"
 	// FieldStartTime holds the string denoting the start_time field in the database.
 	FieldStartTime = "start_time"
-	// FieldMinDistance holds the string denoting the min_distance field in the database.
-	FieldMinDistance = "min_distance"
 	// EdgeMovie holds the string denoting the movie edge name in mutations.
 	EdgeMovie = "movie"
 	// EdgeCinema holds the string denoting the cinema edge name in mutations.
@@ -42,7 +40,7 @@ const (
 	// CinemaTable is the table that holds the cinema relation/edge.
 	CinemaTable = "screenings"
 	// CinemaInverseTable is the table name for the Cinema entity.
-	// It exists in this package in order to avoid circular dependency with the "cinema" package.
+	// It exists in this package in order to avoid circular dependency with the "entcinema" package.
 	CinemaInverseTable = "cinemas"
 	// CinemaColumn is the table column denoting the cinema relation/edge.
 	CinemaColumn = "cinema_screenings"
@@ -62,7 +60,6 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldTitle,
 	FieldStartTime,
-	FieldMinDistance,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "screenings"
@@ -96,8 +93,6 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
-	// MinDistanceValidator is a validator for the "min_distance" field. It is called by the builders before save.
-	MinDistanceValidator func(int32) error
 )
 
 // OrderOption defines the ordering options for the Screening queries.
@@ -126,11 +121,6 @@ func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 // ByStartTime orders the results by the start_time field.
 func ByStartTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStartTime, opts...).ToFunc()
-}
-
-// ByMinDistance orders the results by the min_distance field.
-func ByMinDistance(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldMinDistance, opts...).ToFunc()
 }
 
 // ByMovieField orders the results by movie field.

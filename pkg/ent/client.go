@@ -11,10 +11,9 @@ import (
 
 	"cinema/pkg/ent/migrate"
 
-	"cinema/pkg/ent/cinema"
+	entcinema "cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/screening"
-	"cinema/pkg/ent/seat"
 	"cinema/pkg/ent/seatreservation"
 
 	"entgo.io/ent"
@@ -34,8 +33,6 @@ type Client struct {
 	Movie *MovieClient
 	// Screening is the client for interacting with the Screening builders.
 	Screening *ScreeningClient
-	// Seat is the client for interacting with the Seat builders.
-	Seat *SeatClient
 	// SeatReservation is the client for interacting with the SeatReservation builders.
 	SeatReservation *SeatReservationClient
 }
@@ -52,7 +49,6 @@ func (c *Client) init() {
 	c.Cinema = NewCinemaClient(c.config)
 	c.Movie = NewMovieClient(c.config)
 	c.Screening = NewScreeningClient(c.config)
-	c.Seat = NewSeatClient(c.config)
 	c.SeatReservation = NewSeatReservationClient(c.config)
 }
 
@@ -149,7 +145,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Cinema:          NewCinemaClient(cfg),
 		Movie:           NewMovieClient(cfg),
 		Screening:       NewScreeningClient(cfg),
-		Seat:            NewSeatClient(cfg),
 		SeatReservation: NewSeatReservationClient(cfg),
 	}, nil
 }
@@ -173,7 +168,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Cinema:          NewCinemaClient(cfg),
 		Movie:           NewMovieClient(cfg),
 		Screening:       NewScreeningClient(cfg),
-		Seat:            NewSeatClient(cfg),
 		SeatReservation: NewSeatReservationClient(cfg),
 	}, nil
 }
@@ -206,7 +200,6 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Cinema.Use(hooks...)
 	c.Movie.Use(hooks...)
 	c.Screening.Use(hooks...)
-	c.Seat.Use(hooks...)
 	c.SeatReservation.Use(hooks...)
 }
 
@@ -216,7 +209,6 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Cinema.Intercept(interceptors...)
 	c.Movie.Intercept(interceptors...)
 	c.Screening.Intercept(interceptors...)
-	c.Seat.Intercept(interceptors...)
 	c.SeatReservation.Intercept(interceptors...)
 }
 
@@ -229,8 +221,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Movie.mutate(ctx, m)
 	case *ScreeningMutation:
 		return c.Screening.mutate(ctx, m)
-	case *SeatMutation:
-		return c.Seat.mutate(ctx, m)
 	case *SeatReservationMutation:
 		return c.SeatReservation.mutate(ctx, m)
 	default:
@@ -249,13 +239,13 @@ func NewCinemaClient(c config) *CinemaClient {
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `cinema.Hooks(f(g(h())))`.
+// A call to `Use(f, g, h)` equals to `entcinema.Hooks(f(g(h())))`.
 func (c *CinemaClient) Use(hooks ...Hook) {
 	c.hooks.Cinema = append(c.hooks.Cinema, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `cinema.Intercept(f(g(h())))`.
+// A call to `Intercept(f, g, h)` equals to `entcinema.Intercept(f(g(h())))`.
 func (c *CinemaClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Cinema = append(c.inters.Cinema, interceptors...)
 }
@@ -317,7 +307,7 @@ func (c *CinemaClient) DeleteOne(ci *Cinema) *CinemaDeleteOne {
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *CinemaClient) DeleteOneID(id int64) *CinemaDeleteOne {
-	builder := c.Delete().Where(cinema.ID(id))
+	builder := c.Delete().Where(entcinema.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
 	return &CinemaDeleteOne{builder}
@@ -334,7 +324,7 @@ func (c *CinemaClient) Query() *CinemaQuery {
 
 // Get returns a Cinema entity by its id.
 func (c *CinemaClient) Get(ctx context.Context, id int64) (*Cinema, error) {
-	return c.Query().Where(cinema.ID(id)).Only(ctx)
+	return c.Query().Where(entcinema.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
@@ -346,31 +336,15 @@ func (c *CinemaClient) GetX(ctx context.Context, id int64) *Cinema {
 	return obj
 }
 
-// QuerySeats queries the seats edge of a Cinema.
-func (c *CinemaClient) QuerySeats(ci *Cinema) *SeatQuery {
-	query := (&SeatClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ci.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(cinema.Table, cinema.FieldID, id),
-			sqlgraph.To(seat.Table, seat.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, cinema.SeatsTable, cinema.SeatsColumn),
-		)
-		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryScreenings queries the screenings edge of a Cinema.
 func (c *CinemaClient) QueryScreenings(ci *Cinema) *ScreeningQuery {
 	query := (&ScreeningClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ci.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(cinema.Table, cinema.FieldID, id),
+			sqlgraph.From(entcinema.Table, entcinema.FieldID, id),
 			sqlgraph.To(screening.Table, screening.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, cinema.ScreeningsTable, cinema.ScreeningsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, entcinema.ScreeningsTable, entcinema.ScreeningsColumn),
 		)
 		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
 		return fromV, nil
@@ -683,7 +657,7 @@ func (c *ScreeningClient) QueryCinema(s *Screening) *CinemaQuery {
 		id := s.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(screening.Table, screening.FieldID, id),
-			sqlgraph.To(cinema.Table, cinema.FieldID),
+			sqlgraph.To(entcinema.Table, entcinema.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, screening.CinemaTable, screening.CinemaColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
@@ -730,171 +704,6 @@ func (c *ScreeningClient) mutate(ctx context.Context, m *ScreeningMutation) (Val
 		return (&ScreeningDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Screening mutation op: %q", m.Op())
-	}
-}
-
-// SeatClient is a client for the Seat schema.
-type SeatClient struct {
-	config
-}
-
-// NewSeatClient returns a client for the Seat from the given config.
-func NewSeatClient(c config) *SeatClient {
-	return &SeatClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `seat.Hooks(f(g(h())))`.
-func (c *SeatClient) Use(hooks ...Hook) {
-	c.hooks.Seat = append(c.hooks.Seat, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `seat.Intercept(f(g(h())))`.
-func (c *SeatClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Seat = append(c.inters.Seat, interceptors...)
-}
-
-// Create returns a builder for creating a Seat entity.
-func (c *SeatClient) Create() *SeatCreate {
-	mutation := newSeatMutation(c.config, OpCreate)
-	return &SeatCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Seat entities.
-func (c *SeatClient) CreateBulk(builders ...*SeatCreate) *SeatCreateBulk {
-	return &SeatCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *SeatClient) MapCreateBulk(slice any, setFunc func(*SeatCreate, int)) *SeatCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &SeatCreateBulk{err: fmt.Errorf("calling to SeatClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*SeatCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &SeatCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Seat.
-func (c *SeatClient) Update() *SeatUpdate {
-	mutation := newSeatMutation(c.config, OpUpdate)
-	return &SeatUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *SeatClient) UpdateOne(s *Seat) *SeatUpdateOne {
-	mutation := newSeatMutation(c.config, OpUpdateOne, withSeat(s))
-	return &SeatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *SeatClient) UpdateOneID(id int64) *SeatUpdateOne {
-	mutation := newSeatMutation(c.config, OpUpdateOne, withSeatID(id))
-	return &SeatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Seat.
-func (c *SeatClient) Delete() *SeatDelete {
-	mutation := newSeatMutation(c.config, OpDelete)
-	return &SeatDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *SeatClient) DeleteOne(s *Seat) *SeatDeleteOne {
-	return c.DeleteOneID(s.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SeatClient) DeleteOneID(id int64) *SeatDeleteOne {
-	builder := c.Delete().Where(seat.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SeatDeleteOne{builder}
-}
-
-// Query returns a query builder for Seat.
-func (c *SeatClient) Query() *SeatQuery {
-	return &SeatQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSeat},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Seat entity by its id.
-func (c *SeatClient) Get(ctx context.Context, id int64) (*Seat, error) {
-	return c.Query().Where(seat.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *SeatClient) GetX(ctx context.Context, id int64) *Seat {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryCinema queries the cinema edge of a Seat.
-func (c *SeatClient) QueryCinema(s *Seat) *CinemaQuery {
-	query := (&CinemaClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seat.Table, seat.FieldID, id),
-			sqlgraph.To(cinema.Table, cinema.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seat.CinemaTable, seat.CinemaColumn),
-		)
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QuerySeatReservations queries the seat_reservations edge of a Seat.
-func (c *SeatClient) QuerySeatReservations(s *Seat) *SeatReservationQuery {
-	query := (&SeatReservationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seat.Table, seat.FieldID, id),
-			sqlgraph.To(seatreservation.Table, seatreservation.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, seat.SeatReservationsTable, seat.SeatReservationsColumn),
-		)
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *SeatClient) Hooks() []Hook {
-	return c.hooks.Seat
-}
-
-// Interceptors returns the client interceptors.
-func (c *SeatClient) Interceptors() []Interceptor {
-	return c.inters.Seat
-}
-
-func (c *SeatClient) mutate(ctx context.Context, m *SeatMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&SeatCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&SeatUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&SeatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&SeatDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Seat mutation op: %q", m.Op())
 	}
 }
 
@@ -1006,22 +815,6 @@ func (c *SeatReservationClient) GetX(ctx context.Context, id int64) *SeatReserva
 	return obj
 }
 
-// QuerySeat queries the seat edge of a SeatReservation.
-func (c *SeatReservationClient) QuerySeat(sr *SeatReservation) *SeatQuery {
-	query := (&SeatClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := sr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(seatreservation.Table, seatreservation.FieldID, id),
-			sqlgraph.To(seat.Table, seat.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, seatreservation.SeatTable, seatreservation.SeatColumn),
-		)
-		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryScreening queries the screening edge of a SeatReservation.
 func (c *SeatReservationClient) QueryScreening(sr *SeatReservation) *ScreeningQuery {
 	query := (&ScreeningClient{config: c.config}).Query()
@@ -1066,9 +859,9 @@ func (c *SeatReservationClient) mutate(ctx context.Context, m *SeatReservationMu
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Cinema, Movie, Screening, Seat, SeatReservation []ent.Hook
+		Cinema, Movie, Screening, SeatReservation []ent.Hook
 	}
 	inters struct {
-		Cinema, Movie, Screening, Seat, SeatReservation []ent.Interceptor
+		Cinema, Movie, Screening, SeatReservation []ent.Interceptor
 	}
 )

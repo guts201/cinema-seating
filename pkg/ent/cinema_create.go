@@ -3,9 +3,8 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	entcinema "cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/screening"
-	"cinema/pkg/ent/seat"
 	"context"
 	"errors"
 	"fmt"
@@ -82,21 +81,6 @@ func (cc *CinemaCreate) SetID(i int64) *CinemaCreate {
 	return cc
 }
 
-// AddSeatIDs adds the "seats" edge to the Seat entity by IDs.
-func (cc *CinemaCreate) AddSeatIDs(ids ...int64) *CinemaCreate {
-	cc.mutation.AddSeatIDs(ids...)
-	return cc
-}
-
-// AddSeats adds the "seats" edges to the Seat entity.
-func (cc *CinemaCreate) AddSeats(s ...*Seat) *CinemaCreate {
-	ids := make([]int64, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return cc.AddSeatIDs(ids...)
-}
-
 // AddScreeningIDs adds the "screenings" edge to the Screening entity by IDs.
 func (cc *CinemaCreate) AddScreeningIDs(ids ...int64) *CinemaCreate {
 	cc.mutation.AddScreeningIDs(ids...)
@@ -148,11 +132,11 @@ func (cc *CinemaCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (cc *CinemaCreate) defaults() {
 	if _, ok := cc.mutation.CreatedAt(); !ok {
-		v := cinema.DefaultCreatedAt()
+		v := entcinema.DefaultCreatedAt()
 		cc.mutation.SetCreatedAt(v)
 	}
 	if _, ok := cc.mutation.UpdatedAt(); !ok {
-		v := cinema.DefaultUpdatedAt()
+		v := entcinema.DefaultUpdatedAt()
 		cc.mutation.SetUpdatedAt(v)
 	}
 }
@@ -169,7 +153,7 @@ func (cc *CinemaCreate) check() error {
 		return &ValidationError{Name: "num_row", err: errors.New(`ent: missing required field "Cinema.num_row"`)}
 	}
 	if v, ok := cc.mutation.NumRow(); ok {
-		if err := cinema.NumRowValidator(v); err != nil {
+		if err := entcinema.NumRowValidator(v); err != nil {
 			return &ValidationError{Name: "num_row", err: fmt.Errorf(`ent: validator failed for field "Cinema.num_row": %w`, err)}
 		}
 	}
@@ -177,7 +161,7 @@ func (cc *CinemaCreate) check() error {
 		return &ValidationError{Name: "num_column", err: errors.New(`ent: missing required field "Cinema.num_column"`)}
 	}
 	if v, ok := cc.mutation.NumColumn(); ok {
-		if err := cinema.NumColumnValidator(v); err != nil {
+		if err := entcinema.NumColumnValidator(v); err != nil {
 			return &ValidationError{Name: "num_column", err: fmt.Errorf(`ent: validator failed for field "Cinema.num_column": %w`, err)}
 		}
 	}
@@ -185,7 +169,7 @@ func (cc *CinemaCreate) check() error {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Cinema.name"`)}
 	}
 	if v, ok := cc.mutation.Name(); ok {
-		if err := cinema.NameValidator(v); err != nil {
+		if err := entcinema.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Cinema.name": %w`, err)}
 		}
 	}
@@ -193,7 +177,7 @@ func (cc *CinemaCreate) check() error {
 		return &ValidationError{Name: "min_distance", err: errors.New(`ent: missing required field "Cinema.min_distance"`)}
 	}
 	if v, ok := cc.mutation.MinDistance(); ok {
-		if err := cinema.MinDistanceValidator(v); err != nil {
+		if err := entcinema.MinDistanceValidator(v); err != nil {
 			return &ValidationError{Name: "min_distance", err: fmt.Errorf(`ent: validator failed for field "Cinema.min_distance": %w`, err)}
 		}
 	}
@@ -223,7 +207,7 @@ func (cc *CinemaCreate) sqlSave(ctx context.Context) (*Cinema, error) {
 func (cc *CinemaCreate) createSpec() (*Cinema, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Cinema{config: cc.config}
-		_spec = sqlgraph.NewCreateSpec(cinema.Table, sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64))
+		_spec = sqlgraph.NewCreateSpec(entcinema.Table, sqlgraph.NewFieldSpec(entcinema.FieldID, field.TypeInt64))
 	)
 	_spec.OnConflict = cc.conflict
 	if id, ok := cc.mutation.ID(); ok {
@@ -231,51 +215,35 @@ func (cc *CinemaCreate) createSpec() (*Cinema, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = id
 	}
 	if value, ok := cc.mutation.CreatedAt(); ok {
-		_spec.SetField(cinema.FieldCreatedAt, field.TypeTime, value)
+		_spec.SetField(entcinema.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := cc.mutation.UpdatedAt(); ok {
-		_spec.SetField(cinema.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(entcinema.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
 	if value, ok := cc.mutation.NumRow(); ok {
-		_spec.SetField(cinema.FieldNumRow, field.TypeUint32, value)
+		_spec.SetField(entcinema.FieldNumRow, field.TypeUint32, value)
 		_node.NumRow = value
 	}
 	if value, ok := cc.mutation.NumColumn(); ok {
-		_spec.SetField(cinema.FieldNumColumn, field.TypeUint32, value)
+		_spec.SetField(entcinema.FieldNumColumn, field.TypeUint32, value)
 		_node.NumColumn = value
 	}
 	if value, ok := cc.mutation.Name(); ok {
-		_spec.SetField(cinema.FieldName, field.TypeString, value)
+		_spec.SetField(entcinema.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := cc.mutation.MinDistance(); ok {
-		_spec.SetField(cinema.FieldMinDistance, field.TypeUint32, value)
+		_spec.SetField(entcinema.FieldMinDistance, field.TypeUint32, value)
 		_node.MinDistance = value
-	}
-	if nodes := cc.mutation.SeatsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   cinema.SeatsTable,
-			Columns: []string{cinema.SeatsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(seat.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := cc.mutation.ScreeningsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   cinema.ScreeningsTable,
-			Columns: []string{cinema.ScreeningsColumn},
+			Table:   entcinema.ScreeningsTable,
+			Columns: []string{entcinema.ScreeningsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
@@ -340,79 +308,79 @@ type (
 
 // SetUpdatedAt sets the "updated_at" field.
 func (u *CinemaUpsert) SetUpdatedAt(v time.Time) *CinemaUpsert {
-	u.Set(cinema.FieldUpdatedAt, v)
+	u.Set(entcinema.FieldUpdatedAt, v)
 	return u
 }
 
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *CinemaUpsert) UpdateUpdatedAt() *CinemaUpsert {
-	u.SetExcluded(cinema.FieldUpdatedAt)
+	u.SetExcluded(entcinema.FieldUpdatedAt)
 	return u
 }
 
 // SetNumRow sets the "num_row" field.
 func (u *CinemaUpsert) SetNumRow(v uint32) *CinemaUpsert {
-	u.Set(cinema.FieldNumRow, v)
+	u.Set(entcinema.FieldNumRow, v)
 	return u
 }
 
 // UpdateNumRow sets the "num_row" field to the value that was provided on create.
 func (u *CinemaUpsert) UpdateNumRow() *CinemaUpsert {
-	u.SetExcluded(cinema.FieldNumRow)
+	u.SetExcluded(entcinema.FieldNumRow)
 	return u
 }
 
 // AddNumRow adds v to the "num_row" field.
 func (u *CinemaUpsert) AddNumRow(v uint32) *CinemaUpsert {
-	u.Add(cinema.FieldNumRow, v)
+	u.Add(entcinema.FieldNumRow, v)
 	return u
 }
 
 // SetNumColumn sets the "num_column" field.
 func (u *CinemaUpsert) SetNumColumn(v uint32) *CinemaUpsert {
-	u.Set(cinema.FieldNumColumn, v)
+	u.Set(entcinema.FieldNumColumn, v)
 	return u
 }
 
 // UpdateNumColumn sets the "num_column" field to the value that was provided on create.
 func (u *CinemaUpsert) UpdateNumColumn() *CinemaUpsert {
-	u.SetExcluded(cinema.FieldNumColumn)
+	u.SetExcluded(entcinema.FieldNumColumn)
 	return u
 }
 
 // AddNumColumn adds v to the "num_column" field.
 func (u *CinemaUpsert) AddNumColumn(v uint32) *CinemaUpsert {
-	u.Add(cinema.FieldNumColumn, v)
+	u.Add(entcinema.FieldNumColumn, v)
 	return u
 }
 
 // SetName sets the "name" field.
 func (u *CinemaUpsert) SetName(v string) *CinemaUpsert {
-	u.Set(cinema.FieldName, v)
+	u.Set(entcinema.FieldName, v)
 	return u
 }
 
 // UpdateName sets the "name" field to the value that was provided on create.
 func (u *CinemaUpsert) UpdateName() *CinemaUpsert {
-	u.SetExcluded(cinema.FieldName)
+	u.SetExcluded(entcinema.FieldName)
 	return u
 }
 
 // SetMinDistance sets the "min_distance" field.
 func (u *CinemaUpsert) SetMinDistance(v uint32) *CinemaUpsert {
-	u.Set(cinema.FieldMinDistance, v)
+	u.Set(entcinema.FieldMinDistance, v)
 	return u
 }
 
 // UpdateMinDistance sets the "min_distance" field to the value that was provided on create.
 func (u *CinemaUpsert) UpdateMinDistance() *CinemaUpsert {
-	u.SetExcluded(cinema.FieldMinDistance)
+	u.SetExcluded(entcinema.FieldMinDistance)
 	return u
 }
 
 // AddMinDistance adds v to the "min_distance" field.
 func (u *CinemaUpsert) AddMinDistance(v uint32) *CinemaUpsert {
-	u.Add(cinema.FieldMinDistance, v)
+	u.Add(entcinema.FieldMinDistance, v)
 	return u
 }
 
@@ -423,7 +391,7 @@ func (u *CinemaUpsert) AddMinDistance(v uint32) *CinemaUpsert {
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
 //			sql.ResolveWith(func(u *sql.UpdateSet) {
-//				u.SetIgnore(cinema.FieldID)
+//				u.SetIgnore(entcinema.FieldID)
 //			}),
 //		).
 //		Exec(ctx)
@@ -431,10 +399,10 @@ func (u *CinemaUpsertOne) UpdateNewValues() *CinemaUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
-			s.SetIgnore(cinema.FieldID)
+			s.SetIgnore(entcinema.FieldID)
 		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
-			s.SetIgnore(cinema.FieldCreatedAt)
+			s.SetIgnore(entcinema.FieldCreatedAt)
 		}
 	}))
 	return u
@@ -729,7 +697,7 @@ type CinemaUpsertBulk struct {
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
 //			sql.ResolveWith(func(u *sql.UpdateSet) {
-//				u.SetIgnore(cinema.FieldID)
+//				u.SetIgnore(entcinema.FieldID)
 //			}),
 //		).
 //		Exec(ctx)
@@ -738,10 +706,10 @@ func (u *CinemaUpsertBulk) UpdateNewValues() *CinemaUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
-				s.SetIgnore(cinema.FieldID)
+				s.SetIgnore(entcinema.FieldID)
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
-				s.SetIgnore(cinema.FieldCreatedAt)
+				s.SetIgnore(entcinema.FieldCreatedAt)
 			}
 		}
 	}))

@@ -2,35 +2,65 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
-	"google.golang.org/protobuf/proto"
+	conf "cinema/pkg/config"
+	"cinema/pkg/logging"
+	redis1 "cinema/pkg/redis"
 
-	c "github.com/go-redis/cache/v9"
-	r "github.com/redis/go-redis/v9"
+	redis2 "github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
 type Redis interface {
-	Get(ctx context.Context, slug string, dis proto.Message) (proto.Message, error)
-	Set(ctx context.Context, slug string, expireTime time.Duration, t proto.Message)
+	Get(ctx context.Context, slug string, dis interface{}) (interface{}, error)
+	Set(ctx context.Context, slug string, expireTime time.Duration, t interface{})
 	Delete(ctx context.Context, key ...string)
 }
-
 type redis struct {
-	redis  r.Cmdable
-	cache  *c.TinyLFU
+	redis  redis2.Client
 	logger *zap.Logger
-	Redis
 }
 
-func New(origin *r.Client, logger *zap.Logger) Redis {
-	if origin == nil {
+func New(cfg *conf.Config, logger *zap.Logger, enable bool) Redis {
+	if !enable {
 		return Disabled()
 	}
-	return &redis{
-		cache:  c.NewTinyLFU(cacheLocalMaxCount, cacheLocalTime),
-		logger: logger,
-		redis:  origin,
+	redisClient, err := redis1.New(cfg.GetRedis())
+	if err != nil {
+		logger.Fatal("can not init redis", zap.Error(err))
 	}
+	return &redis{
+		redis:  *redisClient,
+		logger: logger,
+	}
+}
+
+func (r *redis) Get(ctx context.Context, key string, dis interface{}) (interface{}, error) {
+	cmd := r.redis.Get(ctx, key)
+	bytes := []byte(cmd.Val())
+	if cmd.Val() == "" {
+		return nil, nil
+	}
+	err := json.Unmarshal(bytes, dis)
+	if err != nil {
+		return nil, err
+	}
+	r.logger.Debug("[RedisCache][GetCache] Get" + key)
+	return dis, nil
+}
+
+func (r *redis) Delete(ctx context.Context, keys ...string) {
+	r.redis.Del(ctx, keys...)
+	r.logger.Debug("[RedisCache][RemoveCache]")
+}
+
+func (r *redis) Set(ctx context.Context, key string, expireTime time.Duration, t interface{}) {
+	logging.Logger(ctx).Debug("[RedisCache][SetCache] Set" + key)
+	bytes, err := json.Marshal(t)
+	if err != nil {
+		return
+	}
+	r.redis.Set(ctx, key, bytes, expireTime)
 }
