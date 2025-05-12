@@ -3,65 +3,185 @@ syntax = "proto3";
 package cinema;
 
 option go_package = "cinema/api;cinema";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
+service ClientCinema {
+  rpc GetAvailableGroups(GetAvailableGroupsRequest) returns (GetAvailableGroupsResponse);
+  rpc ReserveSeats(ReserveSeatsRequest) returns (ReserveSeatsResponse);
+  rpc CancelSeats(CancelSeatsRequest) returns (CancelSeatsResponse);
+  rpc ListScreening(ListScreeningRequest) returns (ListScreeningResponse);
+  rpc ListCinema(ListCinemaRequest) returns (ListCinemaResponse);
+}
+
+service BackofficeCinema{
+  rpc CreateCinema(CreateCinemaRequest) returns (CreateCinemaResponse);
+  rpc UpdateCinema(UpdateCinemaRequest) returns (UpdateCinemaResponse);
+  rpc DeleteCinema(DeleteCinemaRequest) returns (google.protobuf.Empty);
+  rpc GetCinemas(GetCinemasRequest) returns (GetCinemasResponse);
+  rpc GetCinema(GetCinemaRequest) returns (GetCinemaResponse);
+
+  rpc CreateMovie(CreateMovieRequest) returns (CreateMovieResponse);
+  /* TODO implement
+  rpc UpdateMovie(UpdateMovieRequest) returns (UpdateMovieResponse);
+  rpc DeleteMovie(DeleteMovieRequest) returns (google.protobuf.Empty);
+  rpc GetMovies(GetMoviesRequest) returns (GetMoviesResponse);
+  rpc GetMovie(GetMovieRequest) returns (GetMovieResponse);
+  */
+
+  rpc CreateScreening(CreateScreeningRequest) returns (CreateScreeningResponse);
+  /* TODO implement
+  rpc UpdateScreening(UpdateScreeningRequest) returns (UpdateScreeningResponse);
+  rpc DeleteScreening(DeleteScreeningRequest) returns (google.protobuf.Empty);
+  rpc GetScreenings(GetScreeningsRequest) returns (GetScreeningsResponse);
+  rpc GetScreening(GetScreeningRequest) returns (GetScreeningResponse);
+  */
+}
 
 // ===== Messages =====
+message Cinema {
+  int64 id = 1;
+  string name = 2;
+  uint32 rows = 3;
+  uint32 columns = 4;
+  uint32 min_distance = 5;
+}
+
 message Movie {
-    int32 id = 1;
-    string title = 2;
-    int32 duration_minutes = 3;
-  }
+  int32 id = 1;
+  string title = 2;
+  int32 duration_minutes = 3;
+}
   
-  message Screening {
-    int32 id = 1;
-    int32 movie_id = 2;
-    string start_time = 3; // ISO8601 string
-    int32 rows = 4;
-    int32 columns = 5;
-    int32 min_distance = 6;
-  }
+message Screening {
+  int32 id = 1;
+  int32 movie_id = 2;
+  string start_time = 3; // ISO8601 string
+  int32 rows = 4;
+  int32 columns = 5;
+  int32 min_distance = 6;
+}
   
-  message Seat {
-    int32 row = 1;
-    int32 column = 2;
-  }
+message Seat {
+  int32 row = 1;
+  int32 column = 2;
+  int64 id = 3;
+}
+
+message SeatGroup {
+  repeated Seat seats = 1;
+}
+
+message ReserveSeatsRequest {
+  int32 screening_id = 1;
+  SeatGroup group = 2;
+}
+
+message ReserveSeatsResponse {
+  repeated Seat seats = 1;
+}
+
+message CancelSeatsRequest {
+  int32 screening_id = 1;
+  repeated int64 seat_ids = 2;
+}
+
+message CancelSeatsResponse {
+
+}
+
+message ListScreeningRequest {
+  int32 cinema_id = 1;
+}
   
-  message SeatGroup {
-    repeated Seat seats = 1;
-  }
+message ListScreeningResponse {
+  repeated Screening screenings = 1;
+}
+
+message ListCinemaRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message ListCinemaResponse {
+  repeated Cinema cinemas = 1;
+}
   
-  message ReserveSeatsRequest {
-    int32 screening_id = 1;
-    SeatGroup group = 2;
-  }
-  
-  message ReserveSeatsResponse {
-    bool success = 1;
-    string message = 2;
-  }
-  
-  message CancelSeatsRequest {
-    int32 screening_id = 1;
-    SeatGroup group = 2;
-  }
-  
-  message CancelSeatsResponse {
-    bool success = 1;
-    string message = 2;
-  }
-  
-  message GetAvailableGroupsRequest {
-    int32 screening_id = 1;
-    int32 group_size = 2;
-  }
-  
-  message GetAvailableGroupsResponse {
-    repeated SeatGroup groups = 1;
-  }
-  
-  // ===== Service =====
-  service Cinema {
-    rpc GetAvailableGroups(GetAvailableGroupsRequest) returns (GetAvailableGroupsResponse);
-    rpc ReserveSeats(ReserveSeatsRequest) returns (ReserveSeatsResponse);
-    rpc CancelSeats(CancelSeatsRequest) returns (CancelSeatsResponse);
-  }
+message GetAvailableGroupsRequest {
+  int32 screening_id = 1;
+}
+
+message GetAvailableGroupsResponse {
+  SeatGroup groups = 1;
+  int32 remaining_seats = 2;
+}
+
+enum SeatReservationStatus {
+  PENDING = 0;
+  RESERVED = 1;
+  CANCELED = 2;
+}
+
+
+message CreateCinemaRequest{
+  string name = 1;
+  uint32 rows = 3;
+  uint32 columns = 4;
+  uint32 min_distance = 5;
+}
+
+message CreateCinemaResponse{
+  int64 id = 1;
+}
+
+message UpdateCinemaRequest{
+  int64 id = 1;
+  string name = 2;
+  uint32 rows = 3;
+  uint32 columns = 4;
+  uint32 min_distance = 5;
+}
+
+message UpdateCinemaResponse{
+  int64 id = 1;
+}
+
+message DeleteCinemaRequest{
+  int64 id = 1;
+}
+
+message GetCinemasRequest{
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetCinemasResponse{
+  repeated Cinema cinemas = 1;
+}
+
+message GetCinemaRequest{
+  int64 id = 1;
+}
+
+message GetCinemaResponse{
+  Cinema cinema = 1;
+}
+
+message CreateMovieRequest{
+  string title = 1;
+  int32 duration_minutes = 2;
+}
+
+message CreateMovieResponse{
+  int64 id = 1;
+}
+
+message CreateScreeningRequest{
+  int64 cinema_id = 1;
+  int64 movie_id = 2;
+  google.protobuf.Timestamp start_time = 3;
+}
+
+message CreateScreeningResponse{
+  int64 id = 1;
+}

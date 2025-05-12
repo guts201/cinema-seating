@@ -4,6 +4,7 @@ package ent
 
 import (
 	"cinema/pkg/ent/predicate"
+	"cinema/pkg/ent/screening"
 	"cinema/pkg/ent/seatreservation"
 	"context"
 	"fmt"
@@ -19,11 +20,13 @@ import (
 // SeatReservationQuery is the builder for querying SeatReservation entities.
 type SeatReservationQuery struct {
 	config
-	ctx        *QueryContext
-	order      []seatreservation.OrderOption
-	inters     []Interceptor
-	predicates []predicate.SeatReservation
-	modifiers  []func(*sql.Selector)
+	ctx           *QueryContext
+	order         []seatreservation.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.SeatReservation
+	withScreening *ScreeningQuery
+	withFKs       bool
+	modifiers     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +61,28 @@ func (srq *SeatReservationQuery) Unique(unique bool) *SeatReservationQuery {
 func (srq *SeatReservationQuery) Order(o ...seatreservation.OrderOption) *SeatReservationQuery {
 	srq.order = append(srq.order, o...)
 	return srq
+}
+
+// QueryScreening chains the current query on the "screening" edge.
+func (srq *SeatReservationQuery) QueryScreening() *ScreeningQuery {
+	query := (&ScreeningClient{config: srq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := srq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := srq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seatreservation.Table, seatreservation.FieldID, selector),
+			sqlgraph.To(screening.Table, screening.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seatreservation.ScreeningTable, seatreservation.ScreeningColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(srq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first SeatReservation entity from the query.
@@ -247,16 +272,28 @@ func (srq *SeatReservationQuery) Clone() *SeatReservationQuery {
 		return nil
 	}
 	return &SeatReservationQuery{
-		config:     srq.config,
-		ctx:        srq.ctx.Clone(),
-		order:      append([]seatreservation.OrderOption{}, srq.order...),
-		inters:     append([]Interceptor{}, srq.inters...),
-		predicates: append([]predicate.SeatReservation{}, srq.predicates...),
+		config:        srq.config,
+		ctx:           srq.ctx.Clone(),
+		order:         append([]seatreservation.OrderOption{}, srq.order...),
+		inters:        append([]Interceptor{}, srq.inters...),
+		predicates:    append([]predicate.SeatReservation{}, srq.predicates...),
+		withScreening: srq.withScreening.Clone(),
 		// clone intermediate query.
 		sql:       srq.sql.Clone(),
 		path:      srq.path,
 		modifiers: append([]func(*sql.Selector){}, srq.modifiers...),
 	}
+}
+
+// WithScreening tells the query-builder to eager-load the nodes that are connected to
+// the "screening" edge. The optional arguments are used to configure the query builder of the edge.
+func (srq *SeatReservationQuery) WithScreening(opts ...func(*ScreeningQuery)) *SeatReservationQuery {
+	query := (&ScreeningClient{config: srq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	srq.withScreening = query
+	return srq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -335,15 +372,26 @@ func (srq *SeatReservationQuery) prepareQuery(ctx context.Context) error {
 
 func (srq *SeatReservationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*SeatReservation, error) {
 	var (
-		nodes = []*SeatReservation{}
-		_spec = srq.querySpec()
+		nodes       = []*SeatReservation{}
+		withFKs     = srq.withFKs
+		_spec       = srq.querySpec()
+		loadedTypes = [1]bool{
+			srq.withScreening != nil,
+		}
 	)
+	if srq.withScreening != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, seatreservation.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*SeatReservation).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &SeatReservation{config: srq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(srq.modifiers) > 0 {
@@ -358,7 +406,46 @@ func (srq *SeatReservationQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := srq.withScreening; query != nil {
+		if err := srq.loadScreening(ctx, query, nodes, nil,
+			func(n *SeatReservation, e *Screening) { n.Edges.Screening = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (srq *SeatReservationQuery) loadScreening(ctx context.Context, query *ScreeningQuery, nodes []*SeatReservation, init func(*SeatReservation), assign func(*SeatReservation, *Screening)) error {
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*SeatReservation)
+	for i := range nodes {
+		if nodes[i].screening_seat_reservations == nil {
+			continue
+		}
+		fk := *nodes[i].screening_seat_reservations
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(screening.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "screening_seat_reservations" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (srq *SeatReservationQuery) sqlCount(ctx context.Context) (int, error) {

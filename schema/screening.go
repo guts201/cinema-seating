@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -14,12 +16,19 @@ func (Screening) Fields() []ent.Field {
 		field.String("title").
 			NotEmpty(),
 		field.Time("start_time"),
-		field.Int32("min_distance").Min(0),
 	}
 }
 
 func (Screening) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		Base{},
+	}
+}
+
+func (Screening) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("movie", Movie.Type).Ref("screenings").Unique(),
+		edge.From("cinema", Cinema.Type).Ref("screenings").Unique(),
+		edge.To("seat_reservations", SeatReservation.Type).Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

@@ -3,9 +3,13 @@
 package ent
 
 import (
+	entcinema "cinema/pkg/ent/cinema"
+	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/predicate"
 	"cinema/pkg/ent/screening"
+	"cinema/pkg/ent/seatreservation"
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -19,11 +23,15 @@ import (
 // ScreeningQuery is the builder for querying Screening entities.
 type ScreeningQuery struct {
 	config
-	ctx        *QueryContext
-	order      []screening.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Screening
-	modifiers  []func(*sql.Selector)
+	ctx                  *QueryContext
+	order                []screening.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Screening
+	withMovie            *MovieQuery
+	withCinema           *CinemaQuery
+	withSeatReservations *SeatReservationQuery
+	withFKs              bool
+	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +66,72 @@ func (sq *ScreeningQuery) Unique(unique bool) *ScreeningQuery {
 func (sq *ScreeningQuery) Order(o ...screening.OrderOption) *ScreeningQuery {
 	sq.order = append(sq.order, o...)
 	return sq
+}
+
+// QueryMovie chains the current query on the "movie" edge.
+func (sq *ScreeningQuery) QueryMovie() *MovieQuery {
+	query := (&MovieClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(screening.Table, screening.FieldID, selector),
+			sqlgraph.To(movie.Table, movie.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, screening.MovieTable, screening.MovieColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCinema chains the current query on the "cinema" edge.
+func (sq *ScreeningQuery) QueryCinema() *CinemaQuery {
+	query := (&CinemaClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(screening.Table, screening.FieldID, selector),
+			sqlgraph.To(entcinema.Table, entcinema.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, screening.CinemaTable, screening.CinemaColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeatReservations chains the current query on the "seat_reservations" edge.
+func (sq *ScreeningQuery) QuerySeatReservations() *SeatReservationQuery {
+	query := (&SeatReservationClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(screening.Table, screening.FieldID, selector),
+			sqlgraph.To(seatreservation.Table, seatreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, screening.SeatReservationsTable, screening.SeatReservationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Screening entity from the query.
@@ -247,16 +321,52 @@ func (sq *ScreeningQuery) Clone() *ScreeningQuery {
 		return nil
 	}
 	return &ScreeningQuery{
-		config:     sq.config,
-		ctx:        sq.ctx.Clone(),
-		order:      append([]screening.OrderOption{}, sq.order...),
-		inters:     append([]Interceptor{}, sq.inters...),
-		predicates: append([]predicate.Screening{}, sq.predicates...),
+		config:               sq.config,
+		ctx:                  sq.ctx.Clone(),
+		order:                append([]screening.OrderOption{}, sq.order...),
+		inters:               append([]Interceptor{}, sq.inters...),
+		predicates:           append([]predicate.Screening{}, sq.predicates...),
+		withMovie:            sq.withMovie.Clone(),
+		withCinema:           sq.withCinema.Clone(),
+		withSeatReservations: sq.withSeatReservations.Clone(),
 		// clone intermediate query.
 		sql:       sq.sql.Clone(),
 		path:      sq.path,
 		modifiers: append([]func(*sql.Selector){}, sq.modifiers...),
 	}
+}
+
+// WithMovie tells the query-builder to eager-load the nodes that are connected to
+// the "movie" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *ScreeningQuery) WithMovie(opts ...func(*MovieQuery)) *ScreeningQuery {
+	query := (&MovieClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withMovie = query
+	return sq
+}
+
+// WithCinema tells the query-builder to eager-load the nodes that are connected to
+// the "cinema" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *ScreeningQuery) WithCinema(opts ...func(*CinemaQuery)) *ScreeningQuery {
+	query := (&CinemaClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withCinema = query
+	return sq
+}
+
+// WithSeatReservations tells the query-builder to eager-load the nodes that are connected to
+// the "seat_reservations" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *ScreeningQuery) WithSeatReservations(opts ...func(*SeatReservationQuery)) *ScreeningQuery {
+	query := (&SeatReservationClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withSeatReservations = query
+	return sq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -335,15 +445,28 @@ func (sq *ScreeningQuery) prepareQuery(ctx context.Context) error {
 
 func (sq *ScreeningQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Screening, error) {
 	var (
-		nodes = []*Screening{}
-		_spec = sq.querySpec()
+		nodes       = []*Screening{}
+		withFKs     = sq.withFKs
+		_spec       = sq.querySpec()
+		loadedTypes = [3]bool{
+			sq.withMovie != nil,
+			sq.withCinema != nil,
+			sq.withSeatReservations != nil,
+		}
 	)
+	if sq.withMovie != nil || sq.withCinema != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, screening.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Screening).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Screening{config: sq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(sq.modifiers) > 0 {
@@ -358,7 +481,122 @@ func (sq *ScreeningQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sc
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := sq.withMovie; query != nil {
+		if err := sq.loadMovie(ctx, query, nodes, nil,
+			func(n *Screening, e *Movie) { n.Edges.Movie = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sq.withCinema; query != nil {
+		if err := sq.loadCinema(ctx, query, nodes, nil,
+			func(n *Screening, e *Cinema) { n.Edges.Cinema = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sq.withSeatReservations; query != nil {
+		if err := sq.loadSeatReservations(ctx, query, nodes,
+			func(n *Screening) { n.Edges.SeatReservations = []*SeatReservation{} },
+			func(n *Screening, e *SeatReservation) { n.Edges.SeatReservations = append(n.Edges.SeatReservations, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (sq *ScreeningQuery) loadMovie(ctx context.Context, query *MovieQuery, nodes []*Screening, init func(*Screening), assign func(*Screening, *Movie)) error {
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*Screening)
+	for i := range nodes {
+		if nodes[i].movie_screenings == nil {
+			continue
+		}
+		fk := *nodes[i].movie_screenings
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(movie.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "movie_screenings" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (sq *ScreeningQuery) loadCinema(ctx context.Context, query *CinemaQuery, nodes []*Screening, init func(*Screening), assign func(*Screening, *Cinema)) error {
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*Screening)
+	for i := range nodes {
+		if nodes[i].cinema_screenings == nil {
+			continue
+		}
+		fk := *nodes[i].cinema_screenings
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(entcinema.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "cinema_screenings" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (sq *ScreeningQuery) loadSeatReservations(ctx context.Context, query *SeatReservationQuery, nodes []*Screening, init func(*Screening), assign func(*Screening, *SeatReservation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Screening)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.SeatReservation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(screening.SeatReservationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.screening_seat_reservations
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "screening_seat_reservations" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "screening_seat_reservations" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (sq *ScreeningQuery) sqlCount(ctx context.Context) (int, error) {

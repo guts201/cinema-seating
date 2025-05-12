@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -21,8 +22,17 @@ const (
 	FieldTitle = "title"
 	// FieldDuration holds the string denoting the duration field in the database.
 	FieldDuration = "duration"
+	// EdgeScreenings holds the string denoting the screenings edge name in mutations.
+	EdgeScreenings = "screenings"
 	// Table holds the table name of the movie in the database.
 	Table = "movies"
+	// ScreeningsTable is the table that holds the screenings relation/edge.
+	ScreeningsTable = "screenings"
+	// ScreeningsInverseTable is the table name for the Screening entity.
+	// It exists in this package in order to avoid circular dependency with the "screening" package.
+	ScreeningsInverseTable = "screenings"
+	// ScreeningsColumn is the table column denoting the screenings relation/edge.
+	ScreeningsColumn = "movie_screenings"
 )
 
 // Columns holds all SQL columns for movie fields.
@@ -81,4 +91,25 @@ func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 // ByDuration orders the results by the duration field.
 func ByDuration(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDuration, opts...).ToFunc()
+}
+
+// ByScreeningsCount orders the results by screenings count.
+func ByScreeningsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newScreeningsStep(), opts...)
+	}
+}
+
+// ByScreenings orders the results by screenings terms.
+func ByScreenings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newScreeningsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newScreeningsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ScreeningsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ScreeningsTable, ScreeningsColumn),
+	)
 }

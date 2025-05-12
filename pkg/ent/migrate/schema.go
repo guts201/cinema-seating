@@ -13,10 +13,10 @@ var (
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "num_row", Type: field.TypeInt64},
-		{Name: "num_column", Type: field.TypeInt64},
+		{Name: "num_row", Type: field.TypeUint32},
+		{Name: "num_column", Type: field.TypeUint32},
 		{Name: "name", Type: field.TypeString},
-		{Name: "address", Type: field.TypeString},
+		{Name: "min_distance", Type: field.TypeUint32},
 	}
 	// CinemasTable holds the schema information for the "cinemas" table.
 	CinemasTable = &schema.Table{
@@ -45,27 +45,28 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "title", Type: field.TypeString},
 		{Name: "start_time", Type: field.TypeTime},
-		{Name: "min_distance", Type: field.TypeInt32},
+		{Name: "cinema_screenings", Type: field.TypeInt64, Nullable: true},
+		{Name: "movie_screenings", Type: field.TypeInt64, Nullable: true},
 	}
 	// ScreeningsTable holds the schema information for the "screenings" table.
 	ScreeningsTable = &schema.Table{
 		Name:       "screenings",
 		Columns:    ScreeningsColumns,
 		PrimaryKey: []*schema.Column{ScreeningsColumns[0]},
-	}
-	// SeatsColumns holds the columns for the "seats" table.
-	SeatsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "row", Type: field.TypeInt16},
-		{Name: "column", Type: field.TypeInt16},
-	}
-	// SeatsTable holds the schema information for the "seats" table.
-	SeatsTable = &schema.Table{
-		Name:       "seats",
-		Columns:    SeatsColumns,
-		PrimaryKey: []*schema.Column{SeatsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "screenings_cinemas_screenings",
+				Columns:    []*schema.Column{ScreeningsColumns[5]},
+				RefColumns: []*schema.Column{CinemasColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "screenings_movies_screenings",
+				Columns:    []*schema.Column{ScreeningsColumns[6]},
+				RefColumns: []*schema.Column{MoviesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// SeatReservationsColumns holds the columns for the "seat_reservations" table.
 	SeatReservationsColumns = []*schema.Column{
@@ -74,25 +75,36 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "reserved_at", Type: field.TypeTime},
 		{Name: "group_id", Type: field.TypeUUID},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"reserved", "canceled", "pending"}, Default: "pending"},
-		{Name: "start_time", Type: field.TypeTime},
-		{Name: "end_time", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeInt32, Default: 0},
+		{Name: "row_num", Type: field.TypeUint32},
+		{Name: "column_num", Type: field.TypeUint32},
+		{Name: "screening_seat_reservations", Type: field.TypeInt64, Nullable: true},
 	}
 	// SeatReservationsTable holds the schema information for the "seat_reservations" table.
 	SeatReservationsTable = &schema.Table{
 		Name:       "seat_reservations",
 		Columns:    SeatReservationsColumns,
 		PrimaryKey: []*schema.Column{SeatReservationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "seat_reservations_screenings_seat_reservations",
+				Columns:    []*schema.Column{SeatReservationsColumns[8]},
+				RefColumns: []*schema.Column{ScreeningsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CinemasTable,
 		MoviesTable,
 		ScreeningsTable,
-		SeatsTable,
 		SeatReservationsTable,
 	}
 )
 
 func init() {
+	ScreeningsTable.ForeignKeys[0].RefTable = CinemasTable
+	ScreeningsTable.ForeignKeys[1].RefTable = MoviesTable
+	SeatReservationsTable.ForeignKeys[0].RefTable = ScreeningsTable
 }

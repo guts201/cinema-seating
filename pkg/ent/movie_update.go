@@ -5,6 +5,7 @@ package ent
 import (
 	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/predicate"
+	"cinema/pkg/ent/screening"
 	"context"
 	"errors"
 	"fmt"
@@ -70,9 +71,45 @@ func (mu *MovieUpdate) AddDuration(u int64) *MovieUpdate {
 	return mu
 }
 
+// AddScreeningIDs adds the "screenings" edge to the Screening entity by IDs.
+func (mu *MovieUpdate) AddScreeningIDs(ids ...int64) *MovieUpdate {
+	mu.mutation.AddScreeningIDs(ids...)
+	return mu
+}
+
+// AddScreenings adds the "screenings" edges to the Screening entity.
+func (mu *MovieUpdate) AddScreenings(s ...*Screening) *MovieUpdate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return mu.AddScreeningIDs(ids...)
+}
+
 // Mutation returns the MovieMutation object of the builder.
 func (mu *MovieUpdate) Mutation() *MovieMutation {
 	return mu.mutation
+}
+
+// ClearScreenings clears all "screenings" edges to the Screening entity.
+func (mu *MovieUpdate) ClearScreenings() *MovieUpdate {
+	mu.mutation.ClearScreenings()
+	return mu
+}
+
+// RemoveScreeningIDs removes the "screenings" edge to Screening entities by IDs.
+func (mu *MovieUpdate) RemoveScreeningIDs(ids ...int64) *MovieUpdate {
+	mu.mutation.RemoveScreeningIDs(ids...)
+	return mu
+}
+
+// RemoveScreenings removes "screenings" edges to Screening entities.
+func (mu *MovieUpdate) RemoveScreenings(s ...*Screening) *MovieUpdate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return mu.RemoveScreeningIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -151,6 +188,51 @@ func (mu *MovieUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.AddedDuration(); ok {
 		_spec.AddField(movie.FieldDuration, field.TypeUint64, value)
 	}
+	if mu.mutation.ScreeningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   movie.ScreeningsTable,
+			Columns: []string{movie.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedScreeningsIDs(); len(nodes) > 0 && !mu.mutation.ScreeningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   movie.ScreeningsTable,
+			Columns: []string{movie.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.ScreeningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   movie.ScreeningsTable,
+			Columns: []string{movie.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(mu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, mu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -214,9 +296,45 @@ func (muo *MovieUpdateOne) AddDuration(u int64) *MovieUpdateOne {
 	return muo
 }
 
+// AddScreeningIDs adds the "screenings" edge to the Screening entity by IDs.
+func (muo *MovieUpdateOne) AddScreeningIDs(ids ...int64) *MovieUpdateOne {
+	muo.mutation.AddScreeningIDs(ids...)
+	return muo
+}
+
+// AddScreenings adds the "screenings" edges to the Screening entity.
+func (muo *MovieUpdateOne) AddScreenings(s ...*Screening) *MovieUpdateOne {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return muo.AddScreeningIDs(ids...)
+}
+
 // Mutation returns the MovieMutation object of the builder.
 func (muo *MovieUpdateOne) Mutation() *MovieMutation {
 	return muo.mutation
+}
+
+// ClearScreenings clears all "screenings" edges to the Screening entity.
+func (muo *MovieUpdateOne) ClearScreenings() *MovieUpdateOne {
+	muo.mutation.ClearScreenings()
+	return muo
+}
+
+// RemoveScreeningIDs removes the "screenings" edge to Screening entities by IDs.
+func (muo *MovieUpdateOne) RemoveScreeningIDs(ids ...int64) *MovieUpdateOne {
+	muo.mutation.RemoveScreeningIDs(ids...)
+	return muo
+}
+
+// RemoveScreenings removes "screenings" edges to Screening entities.
+func (muo *MovieUpdateOne) RemoveScreenings(s ...*Screening) *MovieUpdateOne {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return muo.RemoveScreeningIDs(ids...)
 }
 
 // Where appends a list predicates to the MovieUpdate builder.
@@ -324,6 +442,51 @@ func (muo *MovieUpdateOne) sqlSave(ctx context.Context) (_node *Movie, err error
 	}
 	if value, ok := muo.mutation.AddedDuration(); ok {
 		_spec.AddField(movie.FieldDuration, field.TypeUint64, value)
+	}
+	if muo.mutation.ScreeningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   movie.ScreeningsTable,
+			Columns: []string{movie.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedScreeningsIDs(); len(nodes) > 0 && !muo.mutation.ScreeningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   movie.ScreeningsTable,
+			Columns: []string{movie.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.ScreeningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   movie.ScreeningsTable,
+			Columns: []string{movie.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(muo.modifiers...)
 	_node = &Movie{config: muo.config}

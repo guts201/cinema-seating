@@ -5,7 +5,9 @@ package ent
 import (
 	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/predicate"
+	"cinema/pkg/ent/screening"
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -19,11 +21,12 @@ import (
 // MovieQuery is the builder for querying Movie entities.
 type MovieQuery struct {
 	config
-	ctx        *QueryContext
-	order      []movie.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Movie
-	modifiers  []func(*sql.Selector)
+	ctx            *QueryContext
+	order          []movie.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.Movie
+	withScreenings *ScreeningQuery
+	modifiers      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +61,28 @@ func (mq *MovieQuery) Unique(unique bool) *MovieQuery {
 func (mq *MovieQuery) Order(o ...movie.OrderOption) *MovieQuery {
 	mq.order = append(mq.order, o...)
 	return mq
+}
+
+// QueryScreenings chains the current query on the "screenings" edge.
+func (mq *MovieQuery) QueryScreenings() *ScreeningQuery {
+	query := (&ScreeningClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(movie.Table, movie.FieldID, selector),
+			sqlgraph.To(screening.Table, screening.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, movie.ScreeningsTable, movie.ScreeningsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Movie entity from the query.
@@ -247,16 +272,28 @@ func (mq *MovieQuery) Clone() *MovieQuery {
 		return nil
 	}
 	return &MovieQuery{
-		config:     mq.config,
-		ctx:        mq.ctx.Clone(),
-		order:      append([]movie.OrderOption{}, mq.order...),
-		inters:     append([]Interceptor{}, mq.inters...),
-		predicates: append([]predicate.Movie{}, mq.predicates...),
+		config:         mq.config,
+		ctx:            mq.ctx.Clone(),
+		order:          append([]movie.OrderOption{}, mq.order...),
+		inters:         append([]Interceptor{}, mq.inters...),
+		predicates:     append([]predicate.Movie{}, mq.predicates...),
+		withScreenings: mq.withScreenings.Clone(),
 		// clone intermediate query.
 		sql:       mq.sql.Clone(),
 		path:      mq.path,
 		modifiers: append([]func(*sql.Selector){}, mq.modifiers...),
 	}
+}
+
+// WithScreenings tells the query-builder to eager-load the nodes that are connected to
+// the "screenings" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MovieQuery) WithScreenings(opts ...func(*ScreeningQuery)) *MovieQuery {
+	query := (&ScreeningClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withScreenings = query
+	return mq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -335,8 +372,11 @@ func (mq *MovieQuery) prepareQuery(ctx context.Context) error {
 
 func (mq *MovieQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Movie, error) {
 	var (
-		nodes = []*Movie{}
-		_spec = mq.querySpec()
+		nodes       = []*Movie{}
+		_spec       = mq.querySpec()
+		loadedTypes = [1]bool{
+			mq.withScreenings != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Movie).scanValues(nil, columns)
@@ -344,6 +384,7 @@ func (mq *MovieQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Movie,
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Movie{config: mq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(mq.modifiers) > 0 {
@@ -358,7 +399,46 @@ func (mq *MovieQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Movie,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := mq.withScreenings; query != nil {
+		if err := mq.loadScreenings(ctx, query, nodes,
+			func(n *Movie) { n.Edges.Screenings = []*Screening{} },
+			func(n *Movie, e *Screening) { n.Edges.Screenings = append(n.Edges.Screenings, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (mq *MovieQuery) loadScreenings(ctx context.Context, query *ScreeningQuery, nodes []*Movie, init func(*Movie), assign func(*Movie, *Screening)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Movie)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Screening(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(movie.ScreeningsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.movie_screenings
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "movie_screenings" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "movie_screenings" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (mq *MovieQuery) sqlCount(ctx context.Context) (int, error) {

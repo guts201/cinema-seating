@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	cinema "cinema/api"
+	entcinema "cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/movie"
 	"cinema/pkg/ent/screening"
-	"cinema/pkg/ent/seat"
 	"cinema/pkg/ent/seatreservation"
 	"cinema/schema"
 	"time"
@@ -16,37 +16,37 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	cinemaMixin := schema.Cinema{}.Mixin()
-	cinemaMixinFields0 := cinemaMixin[0].Fields()
-	_ = cinemaMixinFields0
-	cinemaFields := schema.Cinema{}.Fields()
-	_ = cinemaFields
-	// cinemaDescCreatedAt is the schema descriptor for created_at field.
-	cinemaDescCreatedAt := cinemaMixinFields0[1].Descriptor()
-	// cinema.DefaultCreatedAt holds the default value on creation for the created_at field.
-	cinema.DefaultCreatedAt = cinemaDescCreatedAt.Default.(func() time.Time)
-	// cinemaDescUpdatedAt is the schema descriptor for updated_at field.
-	cinemaDescUpdatedAt := cinemaMixinFields0[2].Descriptor()
-	// cinema.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	cinema.DefaultUpdatedAt = cinemaDescUpdatedAt.Default.(func() time.Time)
-	// cinema.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	cinema.UpdateDefaultUpdatedAt = cinemaDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// cinemaDescNumRow is the schema descriptor for num_row field.
-	cinemaDescNumRow := cinemaFields[0].Descriptor()
-	// cinema.NumRowValidator is a validator for the "num_row" field. It is called by the builders before save.
-	cinema.NumRowValidator = cinemaDescNumRow.Validators[0].(func(int64) error)
-	// cinemaDescNumColumn is the schema descriptor for num_column field.
-	cinemaDescNumColumn := cinemaFields[1].Descriptor()
-	// cinema.NumColumnValidator is a validator for the "num_column" field. It is called by the builders before save.
-	cinema.NumColumnValidator = cinemaDescNumColumn.Validators[0].(func(int64) error)
-	// cinemaDescName is the schema descriptor for name field.
-	cinemaDescName := cinemaFields[2].Descriptor()
-	// cinema.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	cinema.NameValidator = cinemaDescName.Validators[0].(func(string) error)
-	// cinemaDescAddress is the schema descriptor for address field.
-	cinemaDescAddress := cinemaFields[3].Descriptor()
-	// cinema.AddressValidator is a validator for the "address" field. It is called by the builders before save.
-	cinema.AddressValidator = cinemaDescAddress.Validators[0].(func(string) error)
+	entcinemaMixin := schema.Cinema{}.Mixin()
+	entcinemaMixinFields0 := entcinemaMixin[0].Fields()
+	_ = entcinemaMixinFields0
+	entcinemaFields := schema.Cinema{}.Fields()
+	_ = entcinemaFields
+	// entcinemaDescCreatedAt is the schema descriptor for created_at field.
+	entcinemaDescCreatedAt := entcinemaMixinFields0[1].Descriptor()
+	// entcinema.DefaultCreatedAt holds the default value on creation for the created_at field.
+	entcinema.DefaultCreatedAt = entcinemaDescCreatedAt.Default.(func() time.Time)
+	// entcinemaDescUpdatedAt is the schema descriptor for updated_at field.
+	entcinemaDescUpdatedAt := entcinemaMixinFields0[2].Descriptor()
+	// entcinema.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	entcinema.DefaultUpdatedAt = entcinemaDescUpdatedAt.Default.(func() time.Time)
+	// entcinema.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	entcinema.UpdateDefaultUpdatedAt = entcinemaDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// entcinemaDescNumRow is the schema descriptor for num_row field.
+	entcinemaDescNumRow := entcinemaFields[0].Descriptor()
+	// entcinema.NumRowValidator is a validator for the "num_row" field. It is called by the builders before save.
+	entcinema.NumRowValidator = entcinemaDescNumRow.Validators[0].(func(uint32) error)
+	// entcinemaDescNumColumn is the schema descriptor for num_column field.
+	entcinemaDescNumColumn := entcinemaFields[1].Descriptor()
+	// entcinema.NumColumnValidator is a validator for the "num_column" field. It is called by the builders before save.
+	entcinema.NumColumnValidator = entcinemaDescNumColumn.Validators[0].(func(uint32) error)
+	// entcinemaDescName is the schema descriptor for name field.
+	entcinemaDescName := entcinemaFields[2].Descriptor()
+	// entcinema.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	entcinema.NameValidator = entcinemaDescName.Validators[0].(func(string) error)
+	// entcinemaDescMinDistance is the schema descriptor for min_distance field.
+	entcinemaDescMinDistance := entcinemaFields[3].Descriptor()
+	// entcinema.MinDistanceValidator is a validator for the "min_distance" field. It is called by the builders before save.
+	entcinema.MinDistanceValidator = entcinemaDescMinDistance.Validators[0].(func(uint32) error)
 	movieMixin := schema.Movie{}.Mixin()
 	movieMixinFields0 := movieMixin[0].Fields()
 	_ = movieMixinFields0
@@ -85,33 +85,6 @@ func init() {
 	screeningDescTitle := screeningFields[0].Descriptor()
 	// screening.TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	screening.TitleValidator = screeningDescTitle.Validators[0].(func(string) error)
-	// screeningDescMinDistance is the schema descriptor for min_distance field.
-	screeningDescMinDistance := screeningFields[2].Descriptor()
-	// screening.MinDistanceValidator is a validator for the "min_distance" field. It is called by the builders before save.
-	screening.MinDistanceValidator = screeningDescMinDistance.Validators[0].(func(int32) error)
-	seatMixin := schema.Seat{}.Mixin()
-	seatMixinFields0 := seatMixin[0].Fields()
-	_ = seatMixinFields0
-	seatFields := schema.Seat{}.Fields()
-	_ = seatFields
-	// seatDescCreatedAt is the schema descriptor for created_at field.
-	seatDescCreatedAt := seatMixinFields0[1].Descriptor()
-	// seat.DefaultCreatedAt holds the default value on creation for the created_at field.
-	seat.DefaultCreatedAt = seatDescCreatedAt.Default.(func() time.Time)
-	// seatDescUpdatedAt is the schema descriptor for updated_at field.
-	seatDescUpdatedAt := seatMixinFields0[2].Descriptor()
-	// seat.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	seat.DefaultUpdatedAt = seatDescUpdatedAt.Default.(func() time.Time)
-	// seat.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	seat.UpdateDefaultUpdatedAt = seatDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// seatDescRow is the schema descriptor for row field.
-	seatDescRow := seatFields[0].Descriptor()
-	// seat.RowValidator is a validator for the "row" field. It is called by the builders before save.
-	seat.RowValidator = seatDescRow.Validators[0].(func(int16) error)
-	// seatDescColumn is the schema descriptor for column field.
-	seatDescColumn := seatFields[1].Descriptor()
-	// seat.ColumnValidator is a validator for the "column" field. It is called by the builders before save.
-	seat.ColumnValidator = seatDescColumn.Validators[0].(func(int16) error)
 	seatreservationMixin := schema.SeatReservation{}.Mixin()
 	seatreservationMixinFields0 := seatreservationMixin[0].Fields()
 	_ = seatreservationMixinFields0
@@ -131,12 +104,16 @@ func init() {
 	seatreservationDescReservedAt := seatreservationFields[0].Descriptor()
 	// seatreservation.DefaultReservedAt holds the default value on creation for the reserved_at field.
 	seatreservation.DefaultReservedAt = seatreservationDescReservedAt.Default.(func() time.Time)
-	// seatreservationDescStartTime is the schema descriptor for start_time field.
-	seatreservationDescStartTime := seatreservationFields[3].Descriptor()
-	// seatreservation.DefaultStartTime holds the default value on creation for the start_time field.
-	seatreservation.DefaultStartTime = seatreservationDescStartTime.Default.(func() time.Time)
-	// seatreservationDescEndTime is the schema descriptor for end_time field.
-	seatreservationDescEndTime := seatreservationFields[4].Descriptor()
-	// seatreservation.DefaultEndTime holds the default value on creation for the end_time field.
-	seatreservation.DefaultEndTime = seatreservationDescEndTime.Default.(time.Time)
+	// seatreservationDescStatus is the schema descriptor for status field.
+	seatreservationDescStatus := seatreservationFields[2].Descriptor()
+	// seatreservation.DefaultStatus holds the default value on creation for the status field.
+	seatreservation.DefaultStatus = cinema.SeatReservationStatus(seatreservationDescStatus.Default.(int32))
+	// seatreservationDescRowNum is the schema descriptor for row_num field.
+	seatreservationDescRowNum := seatreservationFields[3].Descriptor()
+	// seatreservation.RowNumValidator is a validator for the "row_num" field. It is called by the builders before save.
+	seatreservation.RowNumValidator = seatreservationDescRowNum.Validators[0].(func(uint32) error)
+	// seatreservationDescColumnNum is the schema descriptor for column_num field.
+	seatreservationDescColumnNum := seatreservationFields[4].Descriptor()
+	// seatreservation.ColumnNumValidator is a validator for the "column_num" field. It is called by the builders before save.
+	seatreservation.ColumnNumValidator = seatreservationDescColumnNum.Validators[0].(func(uint32) error)
 }

@@ -3,7 +3,9 @@
 package ent
 
 import (
+	cinema "cinema/api"
 	"cinema/pkg/ent/predicate"
+	"cinema/pkg/ent/screening"
 	"cinema/pkg/ent/seatreservation"
 	"context"
 	"errors"
@@ -65,50 +67,96 @@ func (sru *SeatReservationUpdate) SetNillableGroupID(u *uuid.UUID) *SeatReservat
 }
 
 // SetStatus sets the "status" field.
-func (sru *SeatReservationUpdate) SetStatus(s seatreservation.Status) *SeatReservationUpdate {
-	sru.mutation.SetStatus(s)
+func (sru *SeatReservationUpdate) SetStatus(crs cinema.SeatReservationStatus) *SeatReservationUpdate {
+	sru.mutation.ResetStatus()
+	sru.mutation.SetStatus(crs)
 	return sru
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (sru *SeatReservationUpdate) SetNillableStatus(s *seatreservation.Status) *SeatReservationUpdate {
-	if s != nil {
-		sru.SetStatus(*s)
+func (sru *SeatReservationUpdate) SetNillableStatus(crs *cinema.SeatReservationStatus) *SeatReservationUpdate {
+	if crs != nil {
+		sru.SetStatus(*crs)
 	}
 	return sru
 }
 
-// SetStartTime sets the "start_time" field.
-func (sru *SeatReservationUpdate) SetStartTime(t time.Time) *SeatReservationUpdate {
-	sru.mutation.SetStartTime(t)
+// AddStatus adds crs to the "status" field.
+func (sru *SeatReservationUpdate) AddStatus(crs cinema.SeatReservationStatus) *SeatReservationUpdate {
+	sru.mutation.AddStatus(crs)
 	return sru
 }
 
-// SetNillableStartTime sets the "start_time" field if the given value is not nil.
-func (sru *SeatReservationUpdate) SetNillableStartTime(t *time.Time) *SeatReservationUpdate {
-	if t != nil {
-		sru.SetStartTime(*t)
+// SetRowNum sets the "row_num" field.
+func (sru *SeatReservationUpdate) SetRowNum(u uint32) *SeatReservationUpdate {
+	sru.mutation.ResetRowNum()
+	sru.mutation.SetRowNum(u)
+	return sru
+}
+
+// SetNillableRowNum sets the "row_num" field if the given value is not nil.
+func (sru *SeatReservationUpdate) SetNillableRowNum(u *uint32) *SeatReservationUpdate {
+	if u != nil {
+		sru.SetRowNum(*u)
 	}
 	return sru
 }
 
-// SetEndTime sets the "end_time" field.
-func (sru *SeatReservationUpdate) SetEndTime(t time.Time) *SeatReservationUpdate {
-	sru.mutation.SetEndTime(t)
+// AddRowNum adds u to the "row_num" field.
+func (sru *SeatReservationUpdate) AddRowNum(u int32) *SeatReservationUpdate {
+	sru.mutation.AddRowNum(u)
 	return sru
 }
 
-// SetNillableEndTime sets the "end_time" field if the given value is not nil.
-func (sru *SeatReservationUpdate) SetNillableEndTime(t *time.Time) *SeatReservationUpdate {
-	if t != nil {
-		sru.SetEndTime(*t)
+// SetColumnNum sets the "column_num" field.
+func (sru *SeatReservationUpdate) SetColumnNum(u uint32) *SeatReservationUpdate {
+	sru.mutation.ResetColumnNum()
+	sru.mutation.SetColumnNum(u)
+	return sru
+}
+
+// SetNillableColumnNum sets the "column_num" field if the given value is not nil.
+func (sru *SeatReservationUpdate) SetNillableColumnNum(u *uint32) *SeatReservationUpdate {
+	if u != nil {
+		sru.SetColumnNum(*u)
 	}
 	return sru
+}
+
+// AddColumnNum adds u to the "column_num" field.
+func (sru *SeatReservationUpdate) AddColumnNum(u int32) *SeatReservationUpdate {
+	sru.mutation.AddColumnNum(u)
+	return sru
+}
+
+// SetScreeningID sets the "screening" edge to the Screening entity by ID.
+func (sru *SeatReservationUpdate) SetScreeningID(id int64) *SeatReservationUpdate {
+	sru.mutation.SetScreeningID(id)
+	return sru
+}
+
+// SetNillableScreeningID sets the "screening" edge to the Screening entity by ID if the given value is not nil.
+func (sru *SeatReservationUpdate) SetNillableScreeningID(id *int64) *SeatReservationUpdate {
+	if id != nil {
+		sru = sru.SetScreeningID(*id)
+	}
+	return sru
+}
+
+// SetScreening sets the "screening" edge to the Screening entity.
+func (sru *SeatReservationUpdate) SetScreening(s *Screening) *SeatReservationUpdate {
+	return sru.SetScreeningID(s.ID)
 }
 
 // Mutation returns the SeatReservationMutation object of the builder.
 func (sru *SeatReservationUpdate) Mutation() *SeatReservationMutation {
 	return sru.mutation
+}
+
+// ClearScreening clears the "screening" edge to the Screening entity.
+func (sru *SeatReservationUpdate) ClearScreening() *SeatReservationUpdate {
+	sru.mutation.ClearScreening()
+	return sru
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -149,9 +197,14 @@ func (sru *SeatReservationUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (sru *SeatReservationUpdate) check() error {
-	if v, ok := sru.mutation.Status(); ok {
-		if err := seatreservation.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "SeatReservation.status": %w`, err)}
+	if v, ok := sru.mutation.RowNum(); ok {
+		if err := seatreservation.RowNumValidator(v); err != nil {
+			return &ValidationError{Name: "row_num", err: fmt.Errorf(`ent: validator failed for field "SeatReservation.row_num": %w`, err)}
+		}
+	}
+	if v, ok := sru.mutation.ColumnNum(); ok {
+		if err := seatreservation.ColumnNumValidator(v); err != nil {
+			return &ValidationError{Name: "column_num", err: fmt.Errorf(`ent: validator failed for field "SeatReservation.column_num": %w`, err)}
 		}
 	}
 	return nil
@@ -185,13 +238,51 @@ func (sru *SeatReservationUpdate) sqlSave(ctx context.Context) (n int, err error
 		_spec.SetField(seatreservation.FieldGroupID, field.TypeUUID, value)
 	}
 	if value, ok := sru.mutation.Status(); ok {
-		_spec.SetField(seatreservation.FieldStatus, field.TypeEnum, value)
+		_spec.SetField(seatreservation.FieldStatus, field.TypeInt32, value)
 	}
-	if value, ok := sru.mutation.StartTime(); ok {
-		_spec.SetField(seatreservation.FieldStartTime, field.TypeTime, value)
+	if value, ok := sru.mutation.AddedStatus(); ok {
+		_spec.AddField(seatreservation.FieldStatus, field.TypeInt32, value)
 	}
-	if value, ok := sru.mutation.EndTime(); ok {
-		_spec.SetField(seatreservation.FieldEndTime, field.TypeTime, value)
+	if value, ok := sru.mutation.RowNum(); ok {
+		_spec.SetField(seatreservation.FieldRowNum, field.TypeUint32, value)
+	}
+	if value, ok := sru.mutation.AddedRowNum(); ok {
+		_spec.AddField(seatreservation.FieldRowNum, field.TypeUint32, value)
+	}
+	if value, ok := sru.mutation.ColumnNum(); ok {
+		_spec.SetField(seatreservation.FieldColumnNum, field.TypeUint32, value)
+	}
+	if value, ok := sru.mutation.AddedColumnNum(); ok {
+		_spec.AddField(seatreservation.FieldColumnNum, field.TypeUint32, value)
+	}
+	if sru.mutation.ScreeningCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatreservation.ScreeningTable,
+			Columns: []string{seatreservation.ScreeningColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := sru.mutation.ScreeningIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatreservation.ScreeningTable,
+			Columns: []string{seatreservation.ScreeningColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(sru.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, sru.driver, _spec); err != nil {
@@ -250,50 +341,96 @@ func (sruo *SeatReservationUpdateOne) SetNillableGroupID(u *uuid.UUID) *SeatRese
 }
 
 // SetStatus sets the "status" field.
-func (sruo *SeatReservationUpdateOne) SetStatus(s seatreservation.Status) *SeatReservationUpdateOne {
-	sruo.mutation.SetStatus(s)
+func (sruo *SeatReservationUpdateOne) SetStatus(crs cinema.SeatReservationStatus) *SeatReservationUpdateOne {
+	sruo.mutation.ResetStatus()
+	sruo.mutation.SetStatus(crs)
 	return sruo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (sruo *SeatReservationUpdateOne) SetNillableStatus(s *seatreservation.Status) *SeatReservationUpdateOne {
-	if s != nil {
-		sruo.SetStatus(*s)
+func (sruo *SeatReservationUpdateOne) SetNillableStatus(crs *cinema.SeatReservationStatus) *SeatReservationUpdateOne {
+	if crs != nil {
+		sruo.SetStatus(*crs)
 	}
 	return sruo
 }
 
-// SetStartTime sets the "start_time" field.
-func (sruo *SeatReservationUpdateOne) SetStartTime(t time.Time) *SeatReservationUpdateOne {
-	sruo.mutation.SetStartTime(t)
+// AddStatus adds crs to the "status" field.
+func (sruo *SeatReservationUpdateOne) AddStatus(crs cinema.SeatReservationStatus) *SeatReservationUpdateOne {
+	sruo.mutation.AddStatus(crs)
 	return sruo
 }
 
-// SetNillableStartTime sets the "start_time" field if the given value is not nil.
-func (sruo *SeatReservationUpdateOne) SetNillableStartTime(t *time.Time) *SeatReservationUpdateOne {
-	if t != nil {
-		sruo.SetStartTime(*t)
+// SetRowNum sets the "row_num" field.
+func (sruo *SeatReservationUpdateOne) SetRowNum(u uint32) *SeatReservationUpdateOne {
+	sruo.mutation.ResetRowNum()
+	sruo.mutation.SetRowNum(u)
+	return sruo
+}
+
+// SetNillableRowNum sets the "row_num" field if the given value is not nil.
+func (sruo *SeatReservationUpdateOne) SetNillableRowNum(u *uint32) *SeatReservationUpdateOne {
+	if u != nil {
+		sruo.SetRowNum(*u)
 	}
 	return sruo
 }
 
-// SetEndTime sets the "end_time" field.
-func (sruo *SeatReservationUpdateOne) SetEndTime(t time.Time) *SeatReservationUpdateOne {
-	sruo.mutation.SetEndTime(t)
+// AddRowNum adds u to the "row_num" field.
+func (sruo *SeatReservationUpdateOne) AddRowNum(u int32) *SeatReservationUpdateOne {
+	sruo.mutation.AddRowNum(u)
 	return sruo
 }
 
-// SetNillableEndTime sets the "end_time" field if the given value is not nil.
-func (sruo *SeatReservationUpdateOne) SetNillableEndTime(t *time.Time) *SeatReservationUpdateOne {
-	if t != nil {
-		sruo.SetEndTime(*t)
+// SetColumnNum sets the "column_num" field.
+func (sruo *SeatReservationUpdateOne) SetColumnNum(u uint32) *SeatReservationUpdateOne {
+	sruo.mutation.ResetColumnNum()
+	sruo.mutation.SetColumnNum(u)
+	return sruo
+}
+
+// SetNillableColumnNum sets the "column_num" field if the given value is not nil.
+func (sruo *SeatReservationUpdateOne) SetNillableColumnNum(u *uint32) *SeatReservationUpdateOne {
+	if u != nil {
+		sruo.SetColumnNum(*u)
 	}
 	return sruo
+}
+
+// AddColumnNum adds u to the "column_num" field.
+func (sruo *SeatReservationUpdateOne) AddColumnNum(u int32) *SeatReservationUpdateOne {
+	sruo.mutation.AddColumnNum(u)
+	return sruo
+}
+
+// SetScreeningID sets the "screening" edge to the Screening entity by ID.
+func (sruo *SeatReservationUpdateOne) SetScreeningID(id int64) *SeatReservationUpdateOne {
+	sruo.mutation.SetScreeningID(id)
+	return sruo
+}
+
+// SetNillableScreeningID sets the "screening" edge to the Screening entity by ID if the given value is not nil.
+func (sruo *SeatReservationUpdateOne) SetNillableScreeningID(id *int64) *SeatReservationUpdateOne {
+	if id != nil {
+		sruo = sruo.SetScreeningID(*id)
+	}
+	return sruo
+}
+
+// SetScreening sets the "screening" edge to the Screening entity.
+func (sruo *SeatReservationUpdateOne) SetScreening(s *Screening) *SeatReservationUpdateOne {
+	return sruo.SetScreeningID(s.ID)
 }
 
 // Mutation returns the SeatReservationMutation object of the builder.
 func (sruo *SeatReservationUpdateOne) Mutation() *SeatReservationMutation {
 	return sruo.mutation
+}
+
+// ClearScreening clears the "screening" edge to the Screening entity.
+func (sruo *SeatReservationUpdateOne) ClearScreening() *SeatReservationUpdateOne {
+	sruo.mutation.ClearScreening()
+	return sruo
 }
 
 // Where appends a list predicates to the SeatReservationUpdate builder.
@@ -347,9 +484,14 @@ func (sruo *SeatReservationUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (sruo *SeatReservationUpdateOne) check() error {
-	if v, ok := sruo.mutation.Status(); ok {
-		if err := seatreservation.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "SeatReservation.status": %w`, err)}
+	if v, ok := sruo.mutation.RowNum(); ok {
+		if err := seatreservation.RowNumValidator(v); err != nil {
+			return &ValidationError{Name: "row_num", err: fmt.Errorf(`ent: validator failed for field "SeatReservation.row_num": %w`, err)}
+		}
+	}
+	if v, ok := sruo.mutation.ColumnNum(); ok {
+		if err := seatreservation.ColumnNumValidator(v); err != nil {
+			return &ValidationError{Name: "column_num", err: fmt.Errorf(`ent: validator failed for field "SeatReservation.column_num": %w`, err)}
 		}
 	}
 	return nil
@@ -400,13 +542,51 @@ func (sruo *SeatReservationUpdateOne) sqlSave(ctx context.Context) (_node *SeatR
 		_spec.SetField(seatreservation.FieldGroupID, field.TypeUUID, value)
 	}
 	if value, ok := sruo.mutation.Status(); ok {
-		_spec.SetField(seatreservation.FieldStatus, field.TypeEnum, value)
+		_spec.SetField(seatreservation.FieldStatus, field.TypeInt32, value)
 	}
-	if value, ok := sruo.mutation.StartTime(); ok {
-		_spec.SetField(seatreservation.FieldStartTime, field.TypeTime, value)
+	if value, ok := sruo.mutation.AddedStatus(); ok {
+		_spec.AddField(seatreservation.FieldStatus, field.TypeInt32, value)
 	}
-	if value, ok := sruo.mutation.EndTime(); ok {
-		_spec.SetField(seatreservation.FieldEndTime, field.TypeTime, value)
+	if value, ok := sruo.mutation.RowNum(); ok {
+		_spec.SetField(seatreservation.FieldRowNum, field.TypeUint32, value)
+	}
+	if value, ok := sruo.mutation.AddedRowNum(); ok {
+		_spec.AddField(seatreservation.FieldRowNum, field.TypeUint32, value)
+	}
+	if value, ok := sruo.mutation.ColumnNum(); ok {
+		_spec.SetField(seatreservation.FieldColumnNum, field.TypeUint32, value)
+	}
+	if value, ok := sruo.mutation.AddedColumnNum(); ok {
+		_spec.AddField(seatreservation.FieldColumnNum, field.TypeUint32, value)
+	}
+	if sruo.mutation.ScreeningCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatreservation.ScreeningTable,
+			Columns: []string{seatreservation.ScreeningColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := sruo.mutation.ScreeningIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatreservation.ScreeningTable,
+			Columns: []string{seatreservation.ScreeningColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(sruo.modifiers...)
 	_node = &SeatReservation{config: sruo.config}

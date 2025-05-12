@@ -9,6 +9,8 @@ package cinema
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 )
@@ -20,7 +22,135 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type SeatReservationStatus int32
+
+const (
+	SeatReservationStatus_PENDING  SeatReservationStatus = 0
+	SeatReservationStatus_RESERVED SeatReservationStatus = 1
+	SeatReservationStatus_CANCELED SeatReservationStatus = 2
+)
+
+// Enum value maps for SeatReservationStatus.
+var (
+	SeatReservationStatus_name = map[int32]string{
+		0: "PENDING",
+		1: "RESERVED",
+		2: "CANCELED",
+	}
+	SeatReservationStatus_value = map[string]int32{
+		"PENDING":  0,
+		"RESERVED": 1,
+		"CANCELED": 2,
+	}
+)
+
+func (x SeatReservationStatus) Enum() *SeatReservationStatus {
+	p := new(SeatReservationStatus)
+	*p = x
+	return p
+}
+
+func (x SeatReservationStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SeatReservationStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_cinema_seating_api_cinema_proto_enumTypes[0].Descriptor()
+}
+
+func (SeatReservationStatus) Type() protoreflect.EnumType {
+	return &file_cinema_seating_api_cinema_proto_enumTypes[0]
+}
+
+func (x SeatReservationStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SeatReservationStatus.Descriptor instead.
+func (SeatReservationStatus) EnumDescriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{0}
+}
+
 // ===== Messages =====
+type Cinema struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id          int64  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name        string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Rows        uint32 `protobuf:"varint,3,opt,name=rows,proto3" json:"rows,omitempty"`
+	Columns     uint32 `protobuf:"varint,4,opt,name=columns,proto3" json:"columns,omitempty"`
+	MinDistance uint32 `protobuf:"varint,5,opt,name=min_distance,json=minDistance,proto3" json:"min_distance,omitempty"`
+}
+
+func (x *Cinema) Reset() {
+	*x = Cinema{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Cinema) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Cinema) ProtoMessage() {}
+
+func (x *Cinema) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Cinema.ProtoReflect.Descriptor instead.
+func (*Cinema) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Cinema) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Cinema) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Cinema) GetRows() uint32 {
+	if x != nil {
+		return x.Rows
+	}
+	return 0
+}
+
+func (x *Cinema) GetColumns() uint32 {
+	if x != nil {
+		return x.Columns
+	}
+	return 0
+}
+
+func (x *Cinema) GetMinDistance() uint32 {
+	if x != nil {
+		return x.MinDistance
+	}
+	return 0
+}
+
 type Movie struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -34,7 +164,7 @@ type Movie struct {
 func (x *Movie) Reset() {
 	*x = Movie{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[0]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -47,7 +177,7 @@ func (x *Movie) String() string {
 func (*Movie) ProtoMessage() {}
 
 func (x *Movie) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[0]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -60,7 +190,7 @@ func (x *Movie) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Movie.ProtoReflect.Descriptor instead.
 func (*Movie) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{0}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Movie) GetId() int32 {
@@ -100,7 +230,7 @@ type Screening struct {
 func (x *Screening) Reset() {
 	*x = Screening{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[1]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -113,7 +243,7 @@ func (x *Screening) String() string {
 func (*Screening) ProtoMessage() {}
 
 func (x *Screening) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[1]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -126,7 +256,7 @@ func (x *Screening) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Screening.ProtoReflect.Descriptor instead.
 func (*Screening) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{1}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Screening) GetId() int32 {
@@ -178,12 +308,13 @@ type Seat struct {
 
 	Row    int32 `protobuf:"varint,1,opt,name=row,proto3" json:"row,omitempty"`
 	Column int32 `protobuf:"varint,2,opt,name=column,proto3" json:"column,omitempty"`
+	Id     int64 `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
 }
 
 func (x *Seat) Reset() {
 	*x = Seat{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[2]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -196,7 +327,7 @@ func (x *Seat) String() string {
 func (*Seat) ProtoMessage() {}
 
 func (x *Seat) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[2]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -209,7 +340,7 @@ func (x *Seat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Seat.ProtoReflect.Descriptor instead.
 func (*Seat) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{2}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Seat) GetRow() int32 {
@@ -226,6 +357,13 @@ func (x *Seat) GetColumn() int32 {
 	return 0
 }
 
+func (x *Seat) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
 type SeatGroup struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -237,7 +375,7 @@ type SeatGroup struct {
 func (x *SeatGroup) Reset() {
 	*x = SeatGroup{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[3]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -250,7 +388,7 @@ func (x *SeatGroup) String() string {
 func (*SeatGroup) ProtoMessage() {}
 
 func (x *SeatGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[3]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -263,7 +401,7 @@ func (x *SeatGroup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeatGroup.ProtoReflect.Descriptor instead.
 func (*SeatGroup) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{3}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SeatGroup) GetSeats() []*Seat {
@@ -285,7 +423,7 @@ type ReserveSeatsRequest struct {
 func (x *ReserveSeatsRequest) Reset() {
 	*x = ReserveSeatsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[4]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -298,7 +436,7 @@ func (x *ReserveSeatsRequest) String() string {
 func (*ReserveSeatsRequest) ProtoMessage() {}
 
 func (x *ReserveSeatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[4]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -311,7 +449,7 @@ func (x *ReserveSeatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReserveSeatsRequest.ProtoReflect.Descriptor instead.
 func (*ReserveSeatsRequest) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{4}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ReserveSeatsRequest) GetScreeningId() int32 {
@@ -333,14 +471,13 @@ type ReserveSeatsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Success bool   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Seats []*Seat `protobuf:"bytes,1,rep,name=seats,proto3" json:"seats,omitempty"`
 }
 
 func (x *ReserveSeatsResponse) Reset() {
 	*x = ReserveSeatsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[5]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -353,7 +490,7 @@ func (x *ReserveSeatsResponse) String() string {
 func (*ReserveSeatsResponse) ProtoMessage() {}
 
 func (x *ReserveSeatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[5]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -366,21 +503,14 @@ func (x *ReserveSeatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReserveSeatsResponse.ProtoReflect.Descriptor instead.
 func (*ReserveSeatsResponse) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{5}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *ReserveSeatsResponse) GetSuccess() bool {
+func (x *ReserveSeatsResponse) GetSeats() []*Seat {
 	if x != nil {
-		return x.Success
+		return x.Seats
 	}
-	return false
-}
-
-func (x *ReserveSeatsResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
+	return nil
 }
 
 type CancelSeatsRequest struct {
@@ -388,14 +518,14 @@ type CancelSeatsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ScreeningId int32      `protobuf:"varint,1,opt,name=screening_id,json=screeningId,proto3" json:"screening_id,omitempty"`
-	Group       *SeatGroup `protobuf:"bytes,2,opt,name=group,proto3" json:"group,omitempty"`
+	ScreeningId int32   `protobuf:"varint,1,opt,name=screening_id,json=screeningId,proto3" json:"screening_id,omitempty"`
+	SeatIds     []int64 `protobuf:"varint,2,rep,packed,name=seat_ids,json=seatIds,proto3" json:"seat_ids,omitempty"`
 }
 
 func (x *CancelSeatsRequest) Reset() {
 	*x = CancelSeatsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[6]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -408,7 +538,7 @@ func (x *CancelSeatsRequest) String() string {
 func (*CancelSeatsRequest) ProtoMessage() {}
 
 func (x *CancelSeatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[6]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -421,7 +551,7 @@ func (x *CancelSeatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelSeatsRequest.ProtoReflect.Descriptor instead.
 func (*CancelSeatsRequest) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{6}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CancelSeatsRequest) GetScreeningId() int32 {
@@ -431,9 +561,9 @@ func (x *CancelSeatsRequest) GetScreeningId() int32 {
 	return 0
 }
 
-func (x *CancelSeatsRequest) GetGroup() *SeatGroup {
+func (x *CancelSeatsRequest) GetSeatIds() []int64 {
 	if x != nil {
-		return x.Group
+		return x.SeatIds
 	}
 	return nil
 }
@@ -442,15 +572,12 @@ type CancelSeatsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	Success bool   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 }
 
 func (x *CancelSeatsResponse) Reset() {
 	*x = CancelSeatsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[7]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -463,7 +590,7 @@ func (x *CancelSeatsResponse) String() string {
 func (*CancelSeatsResponse) ProtoMessage() {}
 
 func (x *CancelSeatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[7]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -476,21 +603,203 @@ func (x *CancelSeatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelSeatsResponse.ProtoReflect.Descriptor instead.
 func (*CancelSeatsResponse) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{7}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *CancelSeatsResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
+type ListScreeningRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CinemaId int32 `protobuf:"varint,1,opt,name=cinema_id,json=cinemaId,proto3" json:"cinema_id,omitempty"`
 }
 
-func (x *CancelSeatsResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
+func (x *ListScreeningRequest) Reset() {
+	*x = ListScreeningRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
 	}
-	return ""
+}
+
+func (x *ListScreeningRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListScreeningRequest) ProtoMessage() {}
+
+func (x *ListScreeningRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListScreeningRequest.ProtoReflect.Descriptor instead.
+func (*ListScreeningRequest) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ListScreeningRequest) GetCinemaId() int32 {
+	if x != nil {
+		return x.CinemaId
+	}
+	return 0
+}
+
+type ListScreeningResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Screenings []*Screening `protobuf:"bytes,1,rep,name=screenings,proto3" json:"screenings,omitempty"`
+}
+
+func (x *ListScreeningResponse) Reset() {
+	*x = ListScreeningResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListScreeningResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListScreeningResponse) ProtoMessage() {}
+
+func (x *ListScreeningResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListScreeningResponse.ProtoReflect.Descriptor instead.
+func (*ListScreeningResponse) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListScreeningResponse) GetScreenings() []*Screening {
+	if x != nil {
+		return x.Screenings
+	}
+	return nil
+}
+
+type ListCinemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Limit  int32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset int32 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+}
+
+func (x *ListCinemaRequest) Reset() {
+	*x = ListCinemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListCinemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCinemaRequest) ProtoMessage() {}
+
+func (x *ListCinemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCinemaRequest.ProtoReflect.Descriptor instead.
+func (*ListCinemaRequest) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListCinemaRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListCinemaRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type ListCinemaResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Cinemas []*Cinema `protobuf:"bytes,1,rep,name=cinemas,proto3" json:"cinemas,omitempty"`
+}
+
+func (x *ListCinemaResponse) Reset() {
+	*x = ListCinemaResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListCinemaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCinemaResponse) ProtoMessage() {}
+
+func (x *ListCinemaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCinemaResponse.ProtoReflect.Descriptor instead.
+func (*ListCinemaResponse) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListCinemaResponse) GetCinemas() []*Cinema {
+	if x != nil {
+		return x.Cinemas
+	}
+	return nil
 }
 
 type GetAvailableGroupsRequest struct {
@@ -499,13 +808,12 @@ type GetAvailableGroupsRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	ScreeningId int32 `protobuf:"varint,1,opt,name=screening_id,json=screeningId,proto3" json:"screening_id,omitempty"`
-	GroupSize   int32 `protobuf:"varint,2,opt,name=group_size,json=groupSize,proto3" json:"group_size,omitempty"`
 }
 
 func (x *GetAvailableGroupsRequest) Reset() {
 	*x = GetAvailableGroupsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[8]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -518,7 +826,7 @@ func (x *GetAvailableGroupsRequest) String() string {
 func (*GetAvailableGroupsRequest) ProtoMessage() {}
 
 func (x *GetAvailableGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[8]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -531,7 +839,7 @@ func (x *GetAvailableGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvailableGroupsRequest.ProtoReflect.Descriptor instead.
 func (*GetAvailableGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{8}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetAvailableGroupsRequest) GetScreeningId() int32 {
@@ -541,25 +849,19 @@ func (x *GetAvailableGroupsRequest) GetScreeningId() int32 {
 	return 0
 }
 
-func (x *GetAvailableGroupsRequest) GetGroupSize() int32 {
-	if x != nil {
-		return x.GroupSize
-	}
-	return 0
-}
-
 type GetAvailableGroupsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Groups []*SeatGroup `protobuf:"bytes,1,rep,name=groups,proto3" json:"groups,omitempty"`
+	Groups         *SeatGroup `protobuf:"bytes,1,opt,name=groups,proto3" json:"groups,omitempty"`
+	RemainingSeats int32      `protobuf:"varint,2,opt,name=remaining_seats,json=remainingSeats,proto3" json:"remaining_seats,omitempty"`
 }
 
 func (x *GetAvailableGroupsResponse) Reset() {
 	*x = GetAvailableGroupsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cinema_seating_api_cinema_proto_msgTypes[9]
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -572,7 +874,7 @@ func (x *GetAvailableGroupsResponse) String() string {
 func (*GetAvailableGroupsResponse) ProtoMessage() {}
 
 func (x *GetAvailableGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cinema_seating_api_cinema_proto_msgTypes[9]
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -585,14 +887,720 @@ func (x *GetAvailableGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvailableGroupsResponse.ProtoReflect.Descriptor instead.
 func (*GetAvailableGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{9}
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *GetAvailableGroupsResponse) GetGroups() []*SeatGroup {
+func (x *GetAvailableGroupsResponse) GetGroups() *SeatGroup {
 	if x != nil {
 		return x.Groups
 	}
 	return nil
+}
+
+func (x *GetAvailableGroupsResponse) GetRemainingSeats() int32 {
+	if x != nil {
+		return x.RemainingSeats
+	}
+	return 0
+}
+
+type CreateCinemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name        string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Rows        uint32 `protobuf:"varint,3,opt,name=rows,proto3" json:"rows,omitempty"`
+	Columns     uint32 `protobuf:"varint,4,opt,name=columns,proto3" json:"columns,omitempty"`
+	MinDistance uint32 `protobuf:"varint,5,opt,name=min_distance,json=minDistance,proto3" json:"min_distance,omitempty"`
+}
+
+func (x *CreateCinemaRequest) Reset() {
+	*x = CreateCinemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateCinemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCinemaRequest) ProtoMessage() {}
+
+func (x *CreateCinemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCinemaRequest.ProtoReflect.Descriptor instead.
+func (*CreateCinemaRequest) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CreateCinemaRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateCinemaRequest) GetRows() uint32 {
+	if x != nil {
+		return x.Rows
+	}
+	return 0
+}
+
+func (x *CreateCinemaRequest) GetColumns() uint32 {
+	if x != nil {
+		return x.Columns
+	}
+	return 0
+}
+
+func (x *CreateCinemaRequest) GetMinDistance() uint32 {
+	if x != nil {
+		return x.MinDistance
+	}
+	return 0
+}
+
+type CreateCinemaResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *CreateCinemaResponse) Reset() {
+	*x = CreateCinemaResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateCinemaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCinemaResponse) ProtoMessage() {}
+
+func (x *CreateCinemaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCinemaResponse.ProtoReflect.Descriptor instead.
+func (*CreateCinemaResponse) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *CreateCinemaResponse) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type UpdateCinemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id          int64  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name        string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Rows        uint32 `protobuf:"varint,3,opt,name=rows,proto3" json:"rows,omitempty"`
+	Columns     uint32 `protobuf:"varint,4,opt,name=columns,proto3" json:"columns,omitempty"`
+	MinDistance uint32 `protobuf:"varint,5,opt,name=min_distance,json=minDistance,proto3" json:"min_distance,omitempty"`
+}
+
+func (x *UpdateCinemaRequest) Reset() {
+	*x = UpdateCinemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateCinemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCinemaRequest) ProtoMessage() {}
+
+func (x *UpdateCinemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCinemaRequest.ProtoReflect.Descriptor instead.
+func (*UpdateCinemaRequest) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UpdateCinemaRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UpdateCinemaRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateCinemaRequest) GetRows() uint32 {
+	if x != nil {
+		return x.Rows
+	}
+	return 0
+}
+
+func (x *UpdateCinemaRequest) GetColumns() uint32 {
+	if x != nil {
+		return x.Columns
+	}
+	return 0
+}
+
+func (x *UpdateCinemaRequest) GetMinDistance() uint32 {
+	if x != nil {
+		return x.MinDistance
+	}
+	return 0
+}
+
+type UpdateCinemaResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *UpdateCinemaResponse) Reset() {
+	*x = UpdateCinemaResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateCinemaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCinemaResponse) ProtoMessage() {}
+
+func (x *UpdateCinemaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCinemaResponse.ProtoReflect.Descriptor instead.
+func (*UpdateCinemaResponse) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *UpdateCinemaResponse) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type DeleteCinemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *DeleteCinemaRequest) Reset() {
+	*x = DeleteCinemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[19]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteCinemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCinemaRequest) ProtoMessage() {}
+
+func (x *DeleteCinemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[19]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCinemaRequest.ProtoReflect.Descriptor instead.
+func (*DeleteCinemaRequest) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *DeleteCinemaRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type GetCinemasRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Limit  int32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset int32 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+}
+
+func (x *GetCinemasRequest) Reset() {
+	*x = GetCinemasRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[20]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCinemasRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCinemasRequest) ProtoMessage() {}
+
+func (x *GetCinemasRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[20]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCinemasRequest.ProtoReflect.Descriptor instead.
+func (*GetCinemasRequest) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetCinemasRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *GetCinemasRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type GetCinemasResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Cinemas []*Cinema `protobuf:"bytes,1,rep,name=cinemas,proto3" json:"cinemas,omitempty"`
+}
+
+func (x *GetCinemasResponse) Reset() {
+	*x = GetCinemasResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[21]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCinemasResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCinemasResponse) ProtoMessage() {}
+
+func (x *GetCinemasResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[21]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCinemasResponse.ProtoReflect.Descriptor instead.
+func (*GetCinemasResponse) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetCinemasResponse) GetCinemas() []*Cinema {
+	if x != nil {
+		return x.Cinemas
+	}
+	return nil
+}
+
+type GetCinemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *GetCinemaRequest) Reset() {
+	*x = GetCinemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[22]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCinemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCinemaRequest) ProtoMessage() {}
+
+func (x *GetCinemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[22]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCinemaRequest.ProtoReflect.Descriptor instead.
+func (*GetCinemaRequest) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetCinemaRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type GetCinemaResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Cinema *Cinema `protobuf:"bytes,1,opt,name=cinema,proto3" json:"cinema,omitempty"`
+}
+
+func (x *GetCinemaResponse) Reset() {
+	*x = GetCinemaResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[23]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCinemaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCinemaResponse) ProtoMessage() {}
+
+func (x *GetCinemaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[23]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCinemaResponse.ProtoReflect.Descriptor instead.
+func (*GetCinemaResponse) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *GetCinemaResponse) GetCinema() *Cinema {
+	if x != nil {
+		return x.Cinema
+	}
+	return nil
+}
+
+type CreateMovieRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Title           string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	DurationMinutes int32  `protobuf:"varint,2,opt,name=duration_minutes,json=durationMinutes,proto3" json:"duration_minutes,omitempty"`
+}
+
+func (x *CreateMovieRequest) Reset() {
+	*x = CreateMovieRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[24]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateMovieRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateMovieRequest) ProtoMessage() {}
+
+func (x *CreateMovieRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[24]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateMovieRequest.ProtoReflect.Descriptor instead.
+func (*CreateMovieRequest) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *CreateMovieRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *CreateMovieRequest) GetDurationMinutes() int32 {
+	if x != nil {
+		return x.DurationMinutes
+	}
+	return 0
+}
+
+type CreateMovieResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *CreateMovieResponse) Reset() {
+	*x = CreateMovieResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[25]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateMovieResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateMovieResponse) ProtoMessage() {}
+
+func (x *CreateMovieResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[25]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateMovieResponse.ProtoReflect.Descriptor instead.
+func (*CreateMovieResponse) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CreateMovieResponse) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type CreateScreeningRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CinemaId  int64                  `protobuf:"varint,1,opt,name=cinema_id,json=cinemaId,proto3" json:"cinema_id,omitempty"`
+	MovieId   int64                  `protobuf:"varint,2,opt,name=movie_id,json=movieId,proto3" json:"movie_id,omitempty"`
+	StartTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+}
+
+func (x *CreateScreeningRequest) Reset() {
+	*x = CreateScreeningRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[26]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateScreeningRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateScreeningRequest) ProtoMessage() {}
+
+func (x *CreateScreeningRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[26]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateScreeningRequest.ProtoReflect.Descriptor instead.
+func (*CreateScreeningRequest) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *CreateScreeningRequest) GetCinemaId() int64 {
+	if x != nil {
+		return x.CinemaId
+	}
+	return 0
+}
+
+func (x *CreateScreeningRequest) GetMovieId() int64 {
+	if x != nil {
+		return x.MovieId
+	}
+	return 0
+}
+
+func (x *CreateScreeningRequest) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartTime
+	}
+	return nil
+}
+
+type CreateScreeningResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *CreateScreeningResponse) Reset() {
+	*x = CreateScreeningResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cinema_seating_api_cinema_proto_msgTypes[27]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateScreeningResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateScreeningResponse) ProtoMessage() {}
+
+func (x *CreateScreeningResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cinema_seating_api_cinema_proto_msgTypes[27]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateScreeningResponse.ProtoReflect.Descriptor instead.
+func (*CreateScreeningResponse) Descriptor() ([]byte, []int) {
+	return file_cinema_seating_api_cinema_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *CreateScreeningResponse) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
 }
 
 var File_cinema_seating_api_cinema_proto protoreflect.FileDescriptor
@@ -600,79 +1608,208 @@ var File_cinema_seating_api_cinema_proto protoreflect.FileDescriptor
 var file_cinema_seating_api_cinema_proto_rawDesc = []byte{
 	0x0a, 0x1f, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2d, 0x73, 0x65, 0x61, 0x74, 0x69, 0x6e, 0x67,
 	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x12, 0x06, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x22, 0x58, 0x0a, 0x05, 0x4d, 0x6f, 0x76,
-	0x69, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x02,
-	0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x29, 0x0a, 0x10, 0x64, 0x75, 0x72, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x6d, 0x69, 0x6e, 0x75, 0x74, 0x65, 0x73, 0x18, 0x03, 0x20, 0x01,
-	0x28, 0x05, 0x52, 0x0f, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d, 0x69, 0x6e, 0x75,
-	0x74, 0x65, 0x73, 0x22, 0xa6, 0x01, 0x0a, 0x09, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e,
-	0x67, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x69,
-	0x64, 0x12, 0x19, 0x0a, 0x08, 0x6d, 0x6f, 0x76, 0x69, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x05, 0x52, 0x07, 0x6d, 0x6f, 0x76, 0x69, 0x65, 0x49, 0x64, 0x12, 0x1d, 0x0a, 0x0a,
-	0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x09, 0x73, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x72,
-	0x6f, 0x77, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x72, 0x6f, 0x77, 0x73, 0x12,
-	0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x05,
-	0x52, 0x07, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x6d, 0x69, 0x6e,
-	0x5f, 0x64, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x05, 0x52,
-	0x0b, 0x6d, 0x69, 0x6e, 0x44, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x22, 0x30, 0x0a, 0x04,
-	0x53, 0x65, 0x61, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x72, 0x6f, 0x77, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x05, 0x52, 0x03, 0x72, 0x6f, 0x77, 0x12, 0x16, 0x0a, 0x06, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x22, 0x2f,
-	0x0a, 0x09, 0x53, 0x65, 0x61, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x12, 0x22, 0x0a, 0x05, 0x73,
-	0x65, 0x61, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x63, 0x69, 0x6e,
-	0x65, 0x6d, 0x61, 0x2e, 0x53, 0x65, 0x61, 0x74, 0x52, 0x05, 0x73, 0x65, 0x61, 0x74, 0x73, 0x22,
-	0x61, 0x0a, 0x13, 0x52, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x21, 0x0a, 0x0c, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e,
-	0x69, 0x6e, 0x67, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0b, 0x73, 0x63,
-	0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x12, 0x27, 0x0a, 0x05, 0x67, 0x72, 0x6f,
-	0x75, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d,
-	0x61, 0x2e, 0x53, 0x65, 0x61, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x05, 0x67, 0x72, 0x6f,
-	0x75, 0x70, 0x22, 0x4a, 0x0a, 0x14, 0x52, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x53, 0x65, 0x61,
-	0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75,
-	0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x63,
-	0x63, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x60,
-	0x0a, 0x12, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x21, 0x0a, 0x0c, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e,
-	0x67, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0b, 0x73, 0x63, 0x72, 0x65,
-	0x65, 0x6e, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x12, 0x27, 0x0a, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e,
-	0x53, 0x65, 0x61, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70,
-	0x22, 0x49, 0x0a, 0x13, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65,
-	0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73,
-	0x73, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x5d, 0x0a, 0x19, 0x47,
-	0x65, 0x74, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x47, 0x72, 0x6f, 0x75, 0x70,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x21, 0x0a, 0x0c, 0x73, 0x63, 0x72, 0x65,
-	0x65, 0x6e, 0x69, 0x6e, 0x67, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0b,
-	0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x67,
-	0x72, 0x6f, 0x75, 0x70, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52,
-	0x09, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x69, 0x7a, 0x65, 0x22, 0x47, 0x0a, 0x1a, 0x47, 0x65,
+	0x6f, 0x12, 0x06, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x1a, 0x1b, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
+	0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x65, 0x6d, 0x70, 0x74, 0x79,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
+	0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x7d, 0x0a, 0x06, 0x43, 0x69, 0x6e, 0x65, 0x6d,
+	0x61, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69,
+	0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x72, 0x6f, 0x77, 0x73, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x0d, 0x52, 0x04, 0x72, 0x6f, 0x77, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6c,
+	0x75, 0x6d, 0x6e, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x07, 0x63, 0x6f, 0x6c, 0x75,
+	0x6d, 0x6e, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x6d, 0x69, 0x6e, 0x5f, 0x64, 0x69, 0x73, 0x74, 0x61,
+	0x6e, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0b, 0x6d, 0x69, 0x6e, 0x44, 0x69,
+	0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x22, 0x58, 0x0a, 0x05, 0x4d, 0x6f, 0x76, 0x69, 0x65, 0x12,
+	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x69, 0x64, 0x12,
+	0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x29, 0x0a, 0x10, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x5f, 0x6d, 0x69, 0x6e, 0x75, 0x74, 0x65, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52,
+	0x0f, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d, 0x69, 0x6e, 0x75, 0x74, 0x65, 0x73,
+	0x22, 0xa6, 0x01, 0x0a, 0x09, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x12, 0x0e,
+	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x69, 0x64, 0x12, 0x19,
+	0x0a, 0x08, 0x6d, 0x6f, 0x76, 0x69, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x07, 0x6d, 0x6f, 0x76, 0x69, 0x65, 0x49, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x73, 0x74, 0x61,
+	0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73,
+	0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x72, 0x6f, 0x77, 0x73,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x72, 0x6f, 0x77, 0x73, 0x12, 0x18, 0x0a, 0x07,
+	0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x63,
+	0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x6d, 0x69, 0x6e, 0x5f, 0x64, 0x69,
+	0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0b, 0x6d, 0x69,
+	0x6e, 0x44, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x22, 0x40, 0x0a, 0x04, 0x53, 0x65, 0x61,
+	0x74, 0x12, 0x10, 0x0a, 0x03, 0x72, 0x6f, 0x77, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03,
+	0x72, 0x6f, 0x77, 0x12, 0x16, 0x0a, 0x06, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x05, 0x52, 0x06, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x12, 0x0e, 0x0a, 0x02, 0x69,
+	0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64, 0x22, 0x2f, 0x0a, 0x09, 0x53,
+	0x65, 0x61, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x12, 0x22, 0x0a, 0x05, 0x73, 0x65, 0x61, 0x74,
+	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61,
+	0x2e, 0x53, 0x65, 0x61, 0x74, 0x52, 0x05, 0x73, 0x65, 0x61, 0x74, 0x73, 0x22, 0x61, 0x0a, 0x13,
+	0x52, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x21, 0x0a, 0x0c, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0b, 0x73, 0x63, 0x72, 0x65, 0x65,
+	0x6e, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x12, 0x27, 0x0a, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x53,
+	0x65, 0x61, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x22,
+	0x3a, 0x0a, 0x14, 0x52, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x22, 0x0a, 0x05, 0x73, 0x65, 0x61, 0x74, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e,
+	0x53, 0x65, 0x61, 0x74, 0x52, 0x05, 0x73, 0x65, 0x61, 0x74, 0x73, 0x22, 0x52, 0x0a, 0x12, 0x43,
+	0x61, 0x6e, 0x63, 0x65, 0x6c, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x21, 0x0a, 0x0c, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x5f, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0b, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69,
+	0x6e, 0x67, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x73, 0x65, 0x61, 0x74, 0x5f, 0x69, 0x64, 0x73,
+	0x18, 0x02, 0x20, 0x03, 0x28, 0x03, 0x52, 0x07, 0x73, 0x65, 0x61, 0x74, 0x49, 0x64, 0x73, 0x22,
+	0x15, 0x0a, 0x13, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x33, 0x0a, 0x14, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x63,
+	0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b,
+	0x0a, 0x09, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x05, 0x52, 0x08, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x49, 0x64, 0x22, 0x4a, 0x0a, 0x15, 0x4c,
+	0x69, 0x73, 0x74, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x31, 0x0a, 0x0a, 0x73, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e,
+	0x67, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d,
+	0x61, 0x2e, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x52, 0x0a, 0x73, 0x63, 0x72,
+	0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x73, 0x22, 0x41, 0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74, 0x43,
+	0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05,
+	0x6c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x6c, 0x69, 0x6d,
+	0x69, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x05, 0x52, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x22, 0x3e, 0x0a, 0x12, 0x4c, 0x69,
+	0x73, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x28, 0x0a, 0x07, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x0e, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x69, 0x6e, 0x65, 0x6d,
+	0x61, 0x52, 0x07, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x73, 0x22, 0x3e, 0x0a, 0x19, 0x47, 0x65,
+	0x74, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x21, 0x0a, 0x0c, 0x73, 0x63, 0x72, 0x65, 0x65,
+	0x6e, 0x69, 0x6e, 0x67, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0b, 0x73,
+	0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x22, 0x70, 0x0a, 0x1a, 0x47, 0x65,
 	0x74, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73,
 	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x29, 0x0a, 0x06, 0x67, 0x72, 0x6f, 0x75,
-	0x70, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d,
+	0x70, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d,
 	0x61, 0x2e, 0x53, 0x65, 0x61, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x06, 0x67, 0x72, 0x6f,
-	0x75, 0x70, 0x73, 0x32, 0xf8, 0x01, 0x0a, 0x06, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x12, 0x5b,
-	0x0a, 0x12, 0x47, 0x65, 0x74, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x47, 0x72,
-	0x6f, 0x75, 0x70, 0x73, 0x12, 0x21, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x47, 0x65,
+	0x75, 0x70, 0x73, 0x12, 0x27, 0x0a, 0x0f, 0x72, 0x65, 0x6d, 0x61, 0x69, 0x6e, 0x69, 0x6e, 0x67,
+	0x5f, 0x73, 0x65, 0x61, 0x74, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0e, 0x72, 0x65,
+	0x6d, 0x61, 0x69, 0x6e, 0x69, 0x6e, 0x67, 0x53, 0x65, 0x61, 0x74, 0x73, 0x22, 0x7a, 0x0a, 0x13,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x72, 0x6f, 0x77, 0x73, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x72, 0x6f, 0x77, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x63,
+	0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x07, 0x63, 0x6f,
+	0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x6d, 0x69, 0x6e, 0x5f, 0x64, 0x69, 0x73,
+	0x74, 0x61, 0x6e, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0b, 0x6d, 0x69, 0x6e,
+	0x44, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x22, 0x26, 0x0a, 0x14, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64,
+	0x22, 0x8a, 0x01, 0x0a, 0x13, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x69, 0x6e, 0x65, 0x6d,
+	0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04,
+	0x72, 0x6f, 0x77, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x72, 0x6f, 0x77, 0x73,
+	0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x0d, 0x52, 0x07, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x6d, 0x69,
+	0x6e, 0x5f, 0x64, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0d,
+	0x52, 0x0b, 0x6d, 0x69, 0x6e, 0x44, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x22, 0x26, 0x0a,
+	0x14, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x03, 0x52, 0x02, 0x69, 0x64, 0x22, 0x25, 0x0a, 0x13, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43,
+	0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64, 0x22, 0x41, 0x0a, 0x11,
+	0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65,
+	0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x22,
+	0x3e, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x28, 0x0a, 0x07, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e,
+	0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x07, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x73, 0x22,
+	0x22, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52,
+	0x02, 0x69, 0x64, 0x22, 0x3b, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x26, 0x0a, 0x06, 0x63, 0x69, 0x6e, 0x65,
+	0x6d, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d,
+	0x61, 0x2e, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x06, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61,
+	0x22, 0x55, 0x0a, 0x12, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4d, 0x6f, 0x76, 0x69, 0x65, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x29, 0x0a, 0x10,
+	0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x6d, 0x69, 0x6e, 0x75, 0x74, 0x65, 0x73,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0f, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x4d, 0x69, 0x6e, 0x75, 0x74, 0x65, 0x73, 0x22, 0x25, 0x0a, 0x13, 0x43, 0x72, 0x65, 0x61, 0x74,
+	0x65, 0x4d, 0x6f, 0x76, 0x69, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e,
+	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64, 0x22, 0x8b,
+	0x01, 0x0a, 0x16, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69,
+	0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x63, 0x69, 0x6e,
+	0x65, 0x6d, 0x61, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x63, 0x69,
+	0x6e, 0x65, 0x6d, 0x61, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x6d, 0x6f, 0x76, 0x69, 0x65, 0x5f,
+	0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x6d, 0x6f, 0x76, 0x69, 0x65, 0x49,
+	0x64, 0x12, 0x39, 0x0a, 0x0a, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
+	0x70, 0x52, 0x09, 0x73, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d, 0x65, 0x22, 0x29, 0x0a, 0x17,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x03, 0x52, 0x02, 0x69, 0x64, 0x2a, 0x40, 0x0a, 0x15, 0x53, 0x65, 0x61, 0x74, 0x52,
+	0x65, 0x73, 0x65, 0x72, 0x76, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73,
+	0x12, 0x0b, 0x0a, 0x07, 0x50, 0x45, 0x4e, 0x44, 0x49, 0x4e, 0x47, 0x10, 0x00, 0x12, 0x0c, 0x0a,
+	0x08, 0x52, 0x45, 0x53, 0x45, 0x52, 0x56, 0x45, 0x44, 0x10, 0x01, 0x12, 0x0c, 0x0a, 0x08, 0x43,
+	0x41, 0x4e, 0x43, 0x45, 0x4c, 0x45, 0x44, 0x10, 0x02, 0x32, 0x91, 0x03, 0x0a, 0x0c, 0x43, 0x6c,
+	0x69, 0x65, 0x6e, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x12, 0x5b, 0x0a, 0x12, 0x47, 0x65,
 	0x74, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61,
-	0x2e, 0x47, 0x65, 0x74, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x47, 0x72, 0x6f,
-	0x75, 0x70, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x49, 0x0a, 0x0c, 0x52,
-	0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x53, 0x65, 0x61, 0x74, 0x73, 0x12, 0x1b, 0x2e, 0x63, 0x69,
-	0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x52, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x53, 0x65, 0x61, 0x74,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d,
-	0x61, 0x2e, 0x52, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x46, 0x0a, 0x0b, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c,
-	0x53, 0x65, 0x61, 0x74, 0x73, 0x12, 0x1a, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43,
-	0x61, 0x6e, 0x63, 0x65, 0x6c, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x1b, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x61, 0x6e, 0x63, 0x65,
-	0x6c, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x13,
-	0x5a, 0x11, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2f, 0x61, 0x70, 0x69, 0x3b, 0x63, 0x69, 0x6e,
-	0x65, 0x6d, 0x61, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x12, 0x21, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x76, 0x61,
+	0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x47, 0x65, 0x74,
+	0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x49, 0x0a, 0x0c, 0x52, 0x65, 0x73, 0x65, 0x72,
+	0x76, 0x65, 0x53, 0x65, 0x61, 0x74, 0x73, 0x12, 0x1b, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61,
+	0x2e, 0x52, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x52, 0x65,
+	0x73, 0x65, 0x72, 0x76, 0x65, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x46, 0x0a, 0x0b, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x53, 0x65, 0x61, 0x74,
+	0x73, 0x12, 0x1a, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x61, 0x6e, 0x63, 0x65,
+	0x6c, 0x53, 0x65, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e,
+	0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x53, 0x65, 0x61,
+	0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x4c, 0x0a, 0x0d, 0x4c, 0x69,
+	0x73, 0x74, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x12, 0x1c, 0x2e, 0x63, 0x69,
+	0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69,
+	0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x63, 0x69, 0x6e, 0x65,
+	0x6d, 0x61, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x43, 0x0a, 0x0a, 0x4c, 0x69, 0x73, 0x74,
+	0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x12, 0x19, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e,
+	0x4c, 0x69, 0x73, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x1a, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43,
+	0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x90, 0x04,
+	0x0a, 0x10, 0x42, 0x61, 0x63, 0x6b, 0x6f, 0x66, 0x66, 0x69, 0x63, 0x65, 0x43, 0x69, 0x6e, 0x65,
+	0x6d, 0x61, 0x12, 0x49, 0x0a, 0x0c, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x69, 0x6e, 0x65,
+	0x6d, 0x61, 0x12, 0x1b, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x1c, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43,
+	0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x49, 0x0a,
+	0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x12, 0x1b, 0x2e,
+	0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x69, 0x6e,
+	0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x63, 0x69, 0x6e,
+	0x65, 0x6d, 0x61, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x43, 0x0a, 0x0c, 0x44, 0x65, 0x6c, 0x65,
+	0x74, 0x65, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x12, 0x1b, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d,
+	0x61, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x43, 0x0a,
+	0x0a, 0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x73, 0x12, 0x19, 0x2e, 0x63, 0x69,
+	0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e,
+	0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x40, 0x0a, 0x09, 0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x12,
+	0x18, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65,
+	0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x63, 0x69, 0x6e, 0x65,
+	0x6d, 0x61, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x46, 0x0a, 0x0b, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4d, 0x6f,
+	0x76, 0x69, 0x65, 0x12, 0x1a, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x72, 0x65,
+	0x61, 0x74, 0x65, 0x4d, 0x6f, 0x76, 0x69, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x1b, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4d,
+	0x6f, 0x76, 0x69, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x52, 0x0a, 0x0f,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x12,
+	0x1e, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53,
+	0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x1f, 0x2e, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53,
+	0x63, 0x72, 0x65, 0x65, 0x6e, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x42, 0x13, 0x5a, 0x11, 0x63, 0x69, 0x6e, 0x65, 0x6d, 0x61, 0x2f, 0x61, 0x70, 0x69, 0x3b, 0x63,
+	0x69, 0x6e, 0x65, 0x6d, 0x61, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -687,35 +1824,80 @@ func file_cinema_seating_api_cinema_proto_rawDescGZIP() []byte {
 	return file_cinema_seating_api_cinema_proto_rawDescData
 }
 
-var file_cinema_seating_api_cinema_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_cinema_seating_api_cinema_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_cinema_seating_api_cinema_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_cinema_seating_api_cinema_proto_goTypes = []interface{}{
-	(*Movie)(nil),                      // 0: cinema.Movie
-	(*Screening)(nil),                  // 1: cinema.Screening
-	(*Seat)(nil),                       // 2: cinema.Seat
-	(*SeatGroup)(nil),                  // 3: cinema.SeatGroup
-	(*ReserveSeatsRequest)(nil),        // 4: cinema.ReserveSeatsRequest
-	(*ReserveSeatsResponse)(nil),       // 5: cinema.ReserveSeatsResponse
-	(*CancelSeatsRequest)(nil),         // 6: cinema.CancelSeatsRequest
-	(*CancelSeatsResponse)(nil),        // 7: cinema.CancelSeatsResponse
-	(*GetAvailableGroupsRequest)(nil),  // 8: cinema.GetAvailableGroupsRequest
-	(*GetAvailableGroupsResponse)(nil), // 9: cinema.GetAvailableGroupsResponse
+	(SeatReservationStatus)(0),         // 0: cinema.SeatReservationStatus
+	(*Cinema)(nil),                     // 1: cinema.Cinema
+	(*Movie)(nil),                      // 2: cinema.Movie
+	(*Screening)(nil),                  // 3: cinema.Screening
+	(*Seat)(nil),                       // 4: cinema.Seat
+	(*SeatGroup)(nil),                  // 5: cinema.SeatGroup
+	(*ReserveSeatsRequest)(nil),        // 6: cinema.ReserveSeatsRequest
+	(*ReserveSeatsResponse)(nil),       // 7: cinema.ReserveSeatsResponse
+	(*CancelSeatsRequest)(nil),         // 8: cinema.CancelSeatsRequest
+	(*CancelSeatsResponse)(nil),        // 9: cinema.CancelSeatsResponse
+	(*ListScreeningRequest)(nil),       // 10: cinema.ListScreeningRequest
+	(*ListScreeningResponse)(nil),      // 11: cinema.ListScreeningResponse
+	(*ListCinemaRequest)(nil),          // 12: cinema.ListCinemaRequest
+	(*ListCinemaResponse)(nil),         // 13: cinema.ListCinemaResponse
+	(*GetAvailableGroupsRequest)(nil),  // 14: cinema.GetAvailableGroupsRequest
+	(*GetAvailableGroupsResponse)(nil), // 15: cinema.GetAvailableGroupsResponse
+	(*CreateCinemaRequest)(nil),        // 16: cinema.CreateCinemaRequest
+	(*CreateCinemaResponse)(nil),       // 17: cinema.CreateCinemaResponse
+	(*UpdateCinemaRequest)(nil),        // 18: cinema.UpdateCinemaRequest
+	(*UpdateCinemaResponse)(nil),       // 19: cinema.UpdateCinemaResponse
+	(*DeleteCinemaRequest)(nil),        // 20: cinema.DeleteCinemaRequest
+	(*GetCinemasRequest)(nil),          // 21: cinema.GetCinemasRequest
+	(*GetCinemasResponse)(nil),         // 22: cinema.GetCinemasResponse
+	(*GetCinemaRequest)(nil),           // 23: cinema.GetCinemaRequest
+	(*GetCinemaResponse)(nil),          // 24: cinema.GetCinemaResponse
+	(*CreateMovieRequest)(nil),         // 25: cinema.CreateMovieRequest
+	(*CreateMovieResponse)(nil),        // 26: cinema.CreateMovieResponse
+	(*CreateScreeningRequest)(nil),     // 27: cinema.CreateScreeningRequest
+	(*CreateScreeningResponse)(nil),    // 28: cinema.CreateScreeningResponse
+	(*timestamppb.Timestamp)(nil),      // 29: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),              // 30: google.protobuf.Empty
 }
 var file_cinema_seating_api_cinema_proto_depIdxs = []int32{
-	2, // 0: cinema.SeatGroup.seats:type_name -> cinema.Seat
-	3, // 1: cinema.ReserveSeatsRequest.group:type_name -> cinema.SeatGroup
-	3, // 2: cinema.CancelSeatsRequest.group:type_name -> cinema.SeatGroup
-	3, // 3: cinema.GetAvailableGroupsResponse.groups:type_name -> cinema.SeatGroup
-	8, // 4: cinema.Cinema.GetAvailableGroups:input_type -> cinema.GetAvailableGroupsRequest
-	4, // 5: cinema.Cinema.ReserveSeats:input_type -> cinema.ReserveSeatsRequest
-	6, // 6: cinema.Cinema.CancelSeats:input_type -> cinema.CancelSeatsRequest
-	9, // 7: cinema.Cinema.GetAvailableGroups:output_type -> cinema.GetAvailableGroupsResponse
-	5, // 8: cinema.Cinema.ReserveSeats:output_type -> cinema.ReserveSeatsResponse
-	7, // 9: cinema.Cinema.CancelSeats:output_type -> cinema.CancelSeatsResponse
-	7, // [7:10] is the sub-list for method output_type
-	4, // [4:7] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	4,  // 0: cinema.SeatGroup.seats:type_name -> cinema.Seat
+	5,  // 1: cinema.ReserveSeatsRequest.group:type_name -> cinema.SeatGroup
+	4,  // 2: cinema.ReserveSeatsResponse.seats:type_name -> cinema.Seat
+	3,  // 3: cinema.ListScreeningResponse.screenings:type_name -> cinema.Screening
+	1,  // 4: cinema.ListCinemaResponse.cinemas:type_name -> cinema.Cinema
+	5,  // 5: cinema.GetAvailableGroupsResponse.groups:type_name -> cinema.SeatGroup
+	1,  // 6: cinema.GetCinemasResponse.cinemas:type_name -> cinema.Cinema
+	1,  // 7: cinema.GetCinemaResponse.cinema:type_name -> cinema.Cinema
+	29, // 8: cinema.CreateScreeningRequest.start_time:type_name -> google.protobuf.Timestamp
+	14, // 9: cinema.ClientCinema.GetAvailableGroups:input_type -> cinema.GetAvailableGroupsRequest
+	6,  // 10: cinema.ClientCinema.ReserveSeats:input_type -> cinema.ReserveSeatsRequest
+	8,  // 11: cinema.ClientCinema.CancelSeats:input_type -> cinema.CancelSeatsRequest
+	10, // 12: cinema.ClientCinema.ListScreening:input_type -> cinema.ListScreeningRequest
+	12, // 13: cinema.ClientCinema.ListCinema:input_type -> cinema.ListCinemaRequest
+	16, // 14: cinema.BackofficeCinema.CreateCinema:input_type -> cinema.CreateCinemaRequest
+	18, // 15: cinema.BackofficeCinema.UpdateCinema:input_type -> cinema.UpdateCinemaRequest
+	20, // 16: cinema.BackofficeCinema.DeleteCinema:input_type -> cinema.DeleteCinemaRequest
+	21, // 17: cinema.BackofficeCinema.GetCinemas:input_type -> cinema.GetCinemasRequest
+	23, // 18: cinema.BackofficeCinema.GetCinema:input_type -> cinema.GetCinemaRequest
+	25, // 19: cinema.BackofficeCinema.CreateMovie:input_type -> cinema.CreateMovieRequest
+	27, // 20: cinema.BackofficeCinema.CreateScreening:input_type -> cinema.CreateScreeningRequest
+	15, // 21: cinema.ClientCinema.GetAvailableGroups:output_type -> cinema.GetAvailableGroupsResponse
+	7,  // 22: cinema.ClientCinema.ReserveSeats:output_type -> cinema.ReserveSeatsResponse
+	9,  // 23: cinema.ClientCinema.CancelSeats:output_type -> cinema.CancelSeatsResponse
+	11, // 24: cinema.ClientCinema.ListScreening:output_type -> cinema.ListScreeningResponse
+	13, // 25: cinema.ClientCinema.ListCinema:output_type -> cinema.ListCinemaResponse
+	17, // 26: cinema.BackofficeCinema.CreateCinema:output_type -> cinema.CreateCinemaResponse
+	19, // 27: cinema.BackofficeCinema.UpdateCinema:output_type -> cinema.UpdateCinemaResponse
+	30, // 28: cinema.BackofficeCinema.DeleteCinema:output_type -> google.protobuf.Empty
+	22, // 29: cinema.BackofficeCinema.GetCinemas:output_type -> cinema.GetCinemasResponse
+	24, // 30: cinema.BackofficeCinema.GetCinema:output_type -> cinema.GetCinemaResponse
+	26, // 31: cinema.BackofficeCinema.CreateMovie:output_type -> cinema.CreateMovieResponse
+	28, // 32: cinema.BackofficeCinema.CreateScreening:output_type -> cinema.CreateScreeningResponse
+	21, // [21:33] is the sub-list for method output_type
+	9,  // [9:21] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_cinema_seating_api_cinema_proto_init() }
@@ -725,7 +1907,7 @@ func file_cinema_seating_api_cinema_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_cinema_seating_api_cinema_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Movie); i {
+			switch v := v.(*Cinema); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -737,7 +1919,7 @@ func file_cinema_seating_api_cinema_proto_init() {
 			}
 		}
 		file_cinema_seating_api_cinema_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Screening); i {
+			switch v := v.(*Movie); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -749,7 +1931,7 @@ func file_cinema_seating_api_cinema_proto_init() {
 			}
 		}
 		file_cinema_seating_api_cinema_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Seat); i {
+			switch v := v.(*Screening); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -761,7 +1943,7 @@ func file_cinema_seating_api_cinema_proto_init() {
 			}
 		}
 		file_cinema_seating_api_cinema_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SeatGroup); i {
+			switch v := v.(*Seat); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -773,7 +1955,7 @@ func file_cinema_seating_api_cinema_proto_init() {
 			}
 		}
 		file_cinema_seating_api_cinema_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ReserveSeatsRequest); i {
+			switch v := v.(*SeatGroup); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -785,7 +1967,7 @@ func file_cinema_seating_api_cinema_proto_init() {
 			}
 		}
 		file_cinema_seating_api_cinema_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ReserveSeatsResponse); i {
+			switch v := v.(*ReserveSeatsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -797,7 +1979,7 @@ func file_cinema_seating_api_cinema_proto_init() {
 			}
 		}
 		file_cinema_seating_api_cinema_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CancelSeatsRequest); i {
+			switch v := v.(*ReserveSeatsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -809,7 +1991,7 @@ func file_cinema_seating_api_cinema_proto_init() {
 			}
 		}
 		file_cinema_seating_api_cinema_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CancelSeatsResponse); i {
+			switch v := v.(*CancelSeatsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -821,7 +2003,7 @@ func file_cinema_seating_api_cinema_proto_init() {
 			}
 		}
 		file_cinema_seating_api_cinema_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetAvailableGroupsRequest); i {
+			switch v := v.(*CancelSeatsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -833,7 +2015,223 @@ func file_cinema_seating_api_cinema_proto_init() {
 			}
 		}
 		file_cinema_seating_api_cinema_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListScreeningRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListScreeningResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListCinemaRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListCinemaResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetAvailableGroupsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetAvailableGroupsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateCinemaRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateCinemaResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateCinemaRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateCinemaResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteCinemaRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetCinemasRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetCinemasResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetCinemaRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetCinemaResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateMovieRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateMovieResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateScreeningRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cinema_seating_api_cinema_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateScreeningResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -850,13 +2248,14 @@ func file_cinema_seating_api_cinema_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_cinema_seating_api_cinema_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   10,
+			NumEnums:      1,
+			NumMessages:   28,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_cinema_seating_api_cinema_proto_goTypes,
 		DependencyIndexes: file_cinema_seating_api_cinema_proto_depIdxs,
+		EnumInfos:         file_cinema_seating_api_cinema_proto_enumTypes,
 		MessageInfos:      file_cinema_seating_api_cinema_proto_msgTypes,
 	}.Build()
 	File_cinema_seating_api_cinema_proto = out.File

@@ -3,6 +3,8 @@
 package ent
 
 import (
+	cinema "cinema/api"
+	"cinema/pkg/ent/screening"
 	"cinema/pkg/ent/seatreservation"
 	"context"
 	"errors"
@@ -72,44 +74,28 @@ func (src *SeatReservationCreate) SetGroupID(u uuid.UUID) *SeatReservationCreate
 }
 
 // SetStatus sets the "status" field.
-func (src *SeatReservationCreate) SetStatus(s seatreservation.Status) *SeatReservationCreate {
-	src.mutation.SetStatus(s)
+func (src *SeatReservationCreate) SetStatus(crs cinema.SeatReservationStatus) *SeatReservationCreate {
+	src.mutation.SetStatus(crs)
 	return src
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (src *SeatReservationCreate) SetNillableStatus(s *seatreservation.Status) *SeatReservationCreate {
-	if s != nil {
-		src.SetStatus(*s)
+func (src *SeatReservationCreate) SetNillableStatus(crs *cinema.SeatReservationStatus) *SeatReservationCreate {
+	if crs != nil {
+		src.SetStatus(*crs)
 	}
 	return src
 }
 
-// SetStartTime sets the "start_time" field.
-func (src *SeatReservationCreate) SetStartTime(t time.Time) *SeatReservationCreate {
-	src.mutation.SetStartTime(t)
+// SetRowNum sets the "row_num" field.
+func (src *SeatReservationCreate) SetRowNum(u uint32) *SeatReservationCreate {
+	src.mutation.SetRowNum(u)
 	return src
 }
 
-// SetNillableStartTime sets the "start_time" field if the given value is not nil.
-func (src *SeatReservationCreate) SetNillableStartTime(t *time.Time) *SeatReservationCreate {
-	if t != nil {
-		src.SetStartTime(*t)
-	}
-	return src
-}
-
-// SetEndTime sets the "end_time" field.
-func (src *SeatReservationCreate) SetEndTime(t time.Time) *SeatReservationCreate {
-	src.mutation.SetEndTime(t)
-	return src
-}
-
-// SetNillableEndTime sets the "end_time" field if the given value is not nil.
-func (src *SeatReservationCreate) SetNillableEndTime(t *time.Time) *SeatReservationCreate {
-	if t != nil {
-		src.SetEndTime(*t)
-	}
+// SetColumnNum sets the "column_num" field.
+func (src *SeatReservationCreate) SetColumnNum(u uint32) *SeatReservationCreate {
+	src.mutation.SetColumnNum(u)
 	return src
 }
 
@@ -117,6 +103,25 @@ func (src *SeatReservationCreate) SetNillableEndTime(t *time.Time) *SeatReservat
 func (src *SeatReservationCreate) SetID(i int64) *SeatReservationCreate {
 	src.mutation.SetID(i)
 	return src
+}
+
+// SetScreeningID sets the "screening" edge to the Screening entity by ID.
+func (src *SeatReservationCreate) SetScreeningID(id int64) *SeatReservationCreate {
+	src.mutation.SetScreeningID(id)
+	return src
+}
+
+// SetNillableScreeningID sets the "screening" edge to the Screening entity by ID if the given value is not nil.
+func (src *SeatReservationCreate) SetNillableScreeningID(id *int64) *SeatReservationCreate {
+	if id != nil {
+		src = src.SetScreeningID(*id)
+	}
+	return src
+}
+
+// SetScreening sets the "screening" edge to the Screening entity.
+func (src *SeatReservationCreate) SetScreening(s *Screening) *SeatReservationCreate {
+	return src.SetScreeningID(s.ID)
 }
 
 // Mutation returns the SeatReservationMutation object of the builder.
@@ -170,14 +175,6 @@ func (src *SeatReservationCreate) defaults() {
 		v := seatreservation.DefaultStatus
 		src.mutation.SetStatus(v)
 	}
-	if _, ok := src.mutation.StartTime(); !ok {
-		v := seatreservation.DefaultStartTime()
-		src.mutation.SetStartTime(v)
-	}
-	if _, ok := src.mutation.EndTime(); !ok {
-		v := seatreservation.DefaultEndTime
-		src.mutation.SetEndTime(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -197,16 +194,21 @@ func (src *SeatReservationCreate) check() error {
 	if _, ok := src.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "SeatReservation.status"`)}
 	}
-	if v, ok := src.mutation.Status(); ok {
-		if err := seatreservation.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "SeatReservation.status": %w`, err)}
+	if _, ok := src.mutation.RowNum(); !ok {
+		return &ValidationError{Name: "row_num", err: errors.New(`ent: missing required field "SeatReservation.row_num"`)}
+	}
+	if v, ok := src.mutation.RowNum(); ok {
+		if err := seatreservation.RowNumValidator(v); err != nil {
+			return &ValidationError{Name: "row_num", err: fmt.Errorf(`ent: validator failed for field "SeatReservation.row_num": %w`, err)}
 		}
 	}
-	if _, ok := src.mutation.StartTime(); !ok {
-		return &ValidationError{Name: "start_time", err: errors.New(`ent: missing required field "SeatReservation.start_time"`)}
+	if _, ok := src.mutation.ColumnNum(); !ok {
+		return &ValidationError{Name: "column_num", err: errors.New(`ent: missing required field "SeatReservation.column_num"`)}
 	}
-	if _, ok := src.mutation.EndTime(); !ok {
-		return &ValidationError{Name: "end_time", err: errors.New(`ent: missing required field "SeatReservation.end_time"`)}
+	if v, ok := src.mutation.ColumnNum(); ok {
+		if err := seatreservation.ColumnNumValidator(v); err != nil {
+			return &ValidationError{Name: "column_num", err: fmt.Errorf(`ent: validator failed for field "SeatReservation.column_num": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -258,16 +260,33 @@ func (src *SeatReservationCreate) createSpec() (*SeatReservation, *sqlgraph.Crea
 		_node.GroupID = value
 	}
 	if value, ok := src.mutation.Status(); ok {
-		_spec.SetField(seatreservation.FieldStatus, field.TypeEnum, value)
+		_spec.SetField(seatreservation.FieldStatus, field.TypeInt32, value)
 		_node.Status = value
 	}
-	if value, ok := src.mutation.StartTime(); ok {
-		_spec.SetField(seatreservation.FieldStartTime, field.TypeTime, value)
-		_node.StartTime = value
+	if value, ok := src.mutation.RowNum(); ok {
+		_spec.SetField(seatreservation.FieldRowNum, field.TypeUint32, value)
+		_node.RowNum = value
 	}
-	if value, ok := src.mutation.EndTime(); ok {
-		_spec.SetField(seatreservation.FieldEndTime, field.TypeTime, value)
-		_node.EndTime = value
+	if value, ok := src.mutation.ColumnNum(); ok {
+		_spec.SetField(seatreservation.FieldColumnNum, field.TypeUint32, value)
+		_node.ColumnNum = value
+	}
+	if nodes := src.mutation.ScreeningIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   seatreservation.ScreeningTable,
+			Columns: []string{seatreservation.ScreeningColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.screening_seat_reservations = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -358,7 +377,7 @@ func (u *SeatReservationUpsert) UpdateGroupID() *SeatReservationUpsert {
 }
 
 // SetStatus sets the "status" field.
-func (u *SeatReservationUpsert) SetStatus(v seatreservation.Status) *SeatReservationUpsert {
+func (u *SeatReservationUpsert) SetStatus(v cinema.SeatReservationStatus) *SeatReservationUpsert {
 	u.Set(seatreservation.FieldStatus, v)
 	return u
 }
@@ -369,27 +388,45 @@ func (u *SeatReservationUpsert) UpdateStatus() *SeatReservationUpsert {
 	return u
 }
 
-// SetStartTime sets the "start_time" field.
-func (u *SeatReservationUpsert) SetStartTime(v time.Time) *SeatReservationUpsert {
-	u.Set(seatreservation.FieldStartTime, v)
+// AddStatus adds v to the "status" field.
+func (u *SeatReservationUpsert) AddStatus(v cinema.SeatReservationStatus) *SeatReservationUpsert {
+	u.Add(seatreservation.FieldStatus, v)
 	return u
 }
 
-// UpdateStartTime sets the "start_time" field to the value that was provided on create.
-func (u *SeatReservationUpsert) UpdateStartTime() *SeatReservationUpsert {
-	u.SetExcluded(seatreservation.FieldStartTime)
+// SetRowNum sets the "row_num" field.
+func (u *SeatReservationUpsert) SetRowNum(v uint32) *SeatReservationUpsert {
+	u.Set(seatreservation.FieldRowNum, v)
 	return u
 }
 
-// SetEndTime sets the "end_time" field.
-func (u *SeatReservationUpsert) SetEndTime(v time.Time) *SeatReservationUpsert {
-	u.Set(seatreservation.FieldEndTime, v)
+// UpdateRowNum sets the "row_num" field to the value that was provided on create.
+func (u *SeatReservationUpsert) UpdateRowNum() *SeatReservationUpsert {
+	u.SetExcluded(seatreservation.FieldRowNum)
 	return u
 }
 
-// UpdateEndTime sets the "end_time" field to the value that was provided on create.
-func (u *SeatReservationUpsert) UpdateEndTime() *SeatReservationUpsert {
-	u.SetExcluded(seatreservation.FieldEndTime)
+// AddRowNum adds v to the "row_num" field.
+func (u *SeatReservationUpsert) AddRowNum(v uint32) *SeatReservationUpsert {
+	u.Add(seatreservation.FieldRowNum, v)
+	return u
+}
+
+// SetColumnNum sets the "column_num" field.
+func (u *SeatReservationUpsert) SetColumnNum(v uint32) *SeatReservationUpsert {
+	u.Set(seatreservation.FieldColumnNum, v)
+	return u
+}
+
+// UpdateColumnNum sets the "column_num" field to the value that was provided on create.
+func (u *SeatReservationUpsert) UpdateColumnNum() *SeatReservationUpsert {
+	u.SetExcluded(seatreservation.FieldColumnNum)
+	return u
+}
+
+// AddColumnNum adds v to the "column_num" field.
+func (u *SeatReservationUpsert) AddColumnNum(v uint32) *SeatReservationUpsert {
+	u.Add(seatreservation.FieldColumnNum, v)
 	return u
 }
 
@@ -487,9 +524,16 @@ func (u *SeatReservationUpsertOne) UpdateGroupID() *SeatReservationUpsertOne {
 }
 
 // SetStatus sets the "status" field.
-func (u *SeatReservationUpsertOne) SetStatus(v seatreservation.Status) *SeatReservationUpsertOne {
+func (u *SeatReservationUpsertOne) SetStatus(v cinema.SeatReservationStatus) *SeatReservationUpsertOne {
 	return u.Update(func(s *SeatReservationUpsert) {
 		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *SeatReservationUpsertOne) AddStatus(v cinema.SeatReservationStatus) *SeatReservationUpsertOne {
+	return u.Update(func(s *SeatReservationUpsert) {
+		s.AddStatus(v)
 	})
 }
 
@@ -500,31 +544,45 @@ func (u *SeatReservationUpsertOne) UpdateStatus() *SeatReservationUpsertOne {
 	})
 }
 
-// SetStartTime sets the "start_time" field.
-func (u *SeatReservationUpsertOne) SetStartTime(v time.Time) *SeatReservationUpsertOne {
+// SetRowNum sets the "row_num" field.
+func (u *SeatReservationUpsertOne) SetRowNum(v uint32) *SeatReservationUpsertOne {
 	return u.Update(func(s *SeatReservationUpsert) {
-		s.SetStartTime(v)
+		s.SetRowNum(v)
 	})
 }
 
-// UpdateStartTime sets the "start_time" field to the value that was provided on create.
-func (u *SeatReservationUpsertOne) UpdateStartTime() *SeatReservationUpsertOne {
+// AddRowNum adds v to the "row_num" field.
+func (u *SeatReservationUpsertOne) AddRowNum(v uint32) *SeatReservationUpsertOne {
 	return u.Update(func(s *SeatReservationUpsert) {
-		s.UpdateStartTime()
+		s.AddRowNum(v)
 	})
 }
 
-// SetEndTime sets the "end_time" field.
-func (u *SeatReservationUpsertOne) SetEndTime(v time.Time) *SeatReservationUpsertOne {
+// UpdateRowNum sets the "row_num" field to the value that was provided on create.
+func (u *SeatReservationUpsertOne) UpdateRowNum() *SeatReservationUpsertOne {
 	return u.Update(func(s *SeatReservationUpsert) {
-		s.SetEndTime(v)
+		s.UpdateRowNum()
 	})
 }
 
-// UpdateEndTime sets the "end_time" field to the value that was provided on create.
-func (u *SeatReservationUpsertOne) UpdateEndTime() *SeatReservationUpsertOne {
+// SetColumnNum sets the "column_num" field.
+func (u *SeatReservationUpsertOne) SetColumnNum(v uint32) *SeatReservationUpsertOne {
 	return u.Update(func(s *SeatReservationUpsert) {
-		s.UpdateEndTime()
+		s.SetColumnNum(v)
+	})
+}
+
+// AddColumnNum adds v to the "column_num" field.
+func (u *SeatReservationUpsertOne) AddColumnNum(v uint32) *SeatReservationUpsertOne {
+	return u.Update(func(s *SeatReservationUpsert) {
+		s.AddColumnNum(v)
+	})
+}
+
+// UpdateColumnNum sets the "column_num" field to the value that was provided on create.
+func (u *SeatReservationUpsertOne) UpdateColumnNum() *SeatReservationUpsertOne {
+	return u.Update(func(s *SeatReservationUpsert) {
+		s.UpdateColumnNum()
 	})
 }
 
@@ -788,9 +846,16 @@ func (u *SeatReservationUpsertBulk) UpdateGroupID() *SeatReservationUpsertBulk {
 }
 
 // SetStatus sets the "status" field.
-func (u *SeatReservationUpsertBulk) SetStatus(v seatreservation.Status) *SeatReservationUpsertBulk {
+func (u *SeatReservationUpsertBulk) SetStatus(v cinema.SeatReservationStatus) *SeatReservationUpsertBulk {
 	return u.Update(func(s *SeatReservationUpsert) {
 		s.SetStatus(v)
+	})
+}
+
+// AddStatus adds v to the "status" field.
+func (u *SeatReservationUpsertBulk) AddStatus(v cinema.SeatReservationStatus) *SeatReservationUpsertBulk {
+	return u.Update(func(s *SeatReservationUpsert) {
+		s.AddStatus(v)
 	})
 }
 
@@ -801,31 +866,45 @@ func (u *SeatReservationUpsertBulk) UpdateStatus() *SeatReservationUpsertBulk {
 	})
 }
 
-// SetStartTime sets the "start_time" field.
-func (u *SeatReservationUpsertBulk) SetStartTime(v time.Time) *SeatReservationUpsertBulk {
+// SetRowNum sets the "row_num" field.
+func (u *SeatReservationUpsertBulk) SetRowNum(v uint32) *SeatReservationUpsertBulk {
 	return u.Update(func(s *SeatReservationUpsert) {
-		s.SetStartTime(v)
+		s.SetRowNum(v)
 	})
 }
 
-// UpdateStartTime sets the "start_time" field to the value that was provided on create.
-func (u *SeatReservationUpsertBulk) UpdateStartTime() *SeatReservationUpsertBulk {
+// AddRowNum adds v to the "row_num" field.
+func (u *SeatReservationUpsertBulk) AddRowNum(v uint32) *SeatReservationUpsertBulk {
 	return u.Update(func(s *SeatReservationUpsert) {
-		s.UpdateStartTime()
+		s.AddRowNum(v)
 	})
 }
 
-// SetEndTime sets the "end_time" field.
-func (u *SeatReservationUpsertBulk) SetEndTime(v time.Time) *SeatReservationUpsertBulk {
+// UpdateRowNum sets the "row_num" field to the value that was provided on create.
+func (u *SeatReservationUpsertBulk) UpdateRowNum() *SeatReservationUpsertBulk {
 	return u.Update(func(s *SeatReservationUpsert) {
-		s.SetEndTime(v)
+		s.UpdateRowNum()
 	})
 }
 
-// UpdateEndTime sets the "end_time" field to the value that was provided on create.
-func (u *SeatReservationUpsertBulk) UpdateEndTime() *SeatReservationUpsertBulk {
+// SetColumnNum sets the "column_num" field.
+func (u *SeatReservationUpsertBulk) SetColumnNum(v uint32) *SeatReservationUpsertBulk {
 	return u.Update(func(s *SeatReservationUpsert) {
-		s.UpdateEndTime()
+		s.SetColumnNum(v)
+	})
+}
+
+// AddColumnNum adds v to the "column_num" field.
+func (u *SeatReservationUpsertBulk) AddColumnNum(v uint32) *SeatReservationUpsertBulk {
+	return u.Update(func(s *SeatReservationUpsert) {
+		s.AddColumnNum(v)
+	})
+}
+
+// UpdateColumnNum sets the "column_num" field to the value that was provided on create.
+func (u *SeatReservationUpsertBulk) UpdateColumnNum() *SeatReservationUpsertBulk {
+	return u.Update(func(s *SeatReservationUpsert) {
+		s.UpdateColumnNum()
 	})
 }
 

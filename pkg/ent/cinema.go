@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	entcinema "cinema/pkg/ent/cinema"
 	"fmt"
 	"strings"
 	"time"
@@ -22,14 +22,35 @@ type Cinema struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// NumRow holds the value of the "num_row" field.
-	NumRow int64 `json:"num_row,omitempty"`
+	NumRow uint32 `json:"num_row,omitempty"`
 	// NumColumn holds the value of the "num_column" field.
-	NumColumn int64 `json:"num_column,omitempty"`
+	NumColumn uint32 `json:"num_column,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Address holds the value of the "address" field.
-	Address      string `json:"address,omitempty"`
+	// MinDistance holds the value of the "min_distance" field.
+	MinDistance uint32 `json:"min_distance,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CinemaQuery when eager-loading is set.
+	Edges        CinemaEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// CinemaEdges holds the relations/edges for other nodes in the graph.
+type CinemaEdges struct {
+	// Screenings holds the value of the screenings edge.
+	Screenings []*Screening `json:"screenings,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// ScreeningsOrErr returns the Screenings value or an error if the edge
+// was not loaded in eager-loading.
+func (e CinemaEdges) ScreeningsOrErr() ([]*Screening, error) {
+	if e.loadedTypes[0] {
+		return e.Screenings, nil
+	}
+	return nil, &NotLoadedError{edge: "screenings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,11 +58,11 @@ func (*Cinema) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case cinema.FieldID, cinema.FieldNumRow, cinema.FieldNumColumn:
+		case entcinema.FieldID, entcinema.FieldNumRow, entcinema.FieldNumColumn, entcinema.FieldMinDistance:
 			values[i] = new(sql.NullInt64)
-		case cinema.FieldName, cinema.FieldAddress:
+		case entcinema.FieldName:
 			values[i] = new(sql.NullString)
-		case cinema.FieldCreatedAt, cinema.FieldUpdatedAt:
+		case entcinema.FieldCreatedAt, entcinema.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -58,47 +79,47 @@ func (c *Cinema) assignValues(columns []string, values []any) error {
 	}
 	for i := range columns {
 		switch columns[i] {
-		case cinema.FieldID:
+		case entcinema.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			c.ID = int64(value.Int64)
-		case cinema.FieldCreatedAt:
+		case entcinema.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				c.CreatedAt = value.Time
 			}
-		case cinema.FieldUpdatedAt:
+		case entcinema.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				c.UpdatedAt = value.Time
 			}
-		case cinema.FieldNumRow:
+		case entcinema.FieldNumRow:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field num_row", values[i])
 			} else if value.Valid {
-				c.NumRow = value.Int64
+				c.NumRow = uint32(value.Int64)
 			}
-		case cinema.FieldNumColumn:
+		case entcinema.FieldNumColumn:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field num_column", values[i])
 			} else if value.Valid {
-				c.NumColumn = value.Int64
+				c.NumColumn = uint32(value.Int64)
 			}
-		case cinema.FieldName:
+		case entcinema.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				c.Name = value.String
 			}
-		case cinema.FieldAddress:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field address", values[i])
+		case entcinema.FieldMinDistance:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field min_distance", values[i])
 			} else if value.Valid {
-				c.Address = value.String
+				c.MinDistance = uint32(value.Int64)
 			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
@@ -111,6 +132,11 @@ func (c *Cinema) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (c *Cinema) Value(name string) (ent.Value, error) {
 	return c.selectValues.Get(name)
+}
+
+// QueryScreenings queries the "screenings" edge of the Cinema entity.
+func (c *Cinema) QueryScreenings() *ScreeningQuery {
+	return NewCinemaClient(c.config).QueryScreenings(c)
 }
 
 // Update returns a builder for updating this Cinema.
@@ -151,8 +177,8 @@ func (c *Cinema) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(c.Name)
 	builder.WriteString(", ")
-	builder.WriteString("address=")
-	builder.WriteString(c.Address)
+	builder.WriteString("min_distance=")
+	builder.WriteString(fmt.Sprintf("%v", c.MinDistance))
 	builder.WriteByte(')')
 	return builder.String()
 }

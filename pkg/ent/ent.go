@@ -3,11 +3,6 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
-	"cinema/pkg/ent/movie"
-	"cinema/pkg/ent/screening"
-	"cinema/pkg/ent/seat"
-	"cinema/pkg/ent/seatreservation"
 	"context"
 	"errors"
 	"fmt"
@@ -17,6 +12,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+
+	entcinema "cinema/pkg/ent/cinema"
+	"cinema/pkg/ent/movie"
+	"cinema/pkg/ent/screening"
+	"cinema/pkg/ent/seatreservation"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -77,10 +77,9 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			cinema.Table:          cinema.ValidColumn,
+			entcinema.Table:       entcinema.ValidColumn,
 			movie.Table:           movie.ValidColumn,
 			screening.Table:       screening.ValidColumn,
-			seat.Table:            seat.ValidColumn,
 			seatreservation.Table: seatreservation.ValidColumn,
 		})
 	})

@@ -6,7 +6,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Cinema is the predicate function for cinema builders.
+// Cinema is the predicate function for entcinema builders.
 type Cinema func(*sql.Selector)
 
 // Movie is the predicate function for movie builders.
@@ -14,9 +14,6 @@ type Movie func(*sql.Selector)
 
 // Screening is the predicate function for screening builders.
 type Screening func(*sql.Selector)
-
-// Seat is the predicate function for seat builders.
-type Seat func(*sql.Selector)
 
 // SeatReservation is the predicate function for seatreservation builders.
 type SeatReservation func(*sql.Selector)

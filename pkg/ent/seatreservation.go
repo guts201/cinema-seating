@@ -3,6 +3,8 @@
 package ent
 
 import (
+	cinema "cinema/api"
+	"cinema/pkg/ent/screening"
 	"cinema/pkg/ent/seatreservation"
 	"fmt"
 	"strings"
@@ -27,12 +29,36 @@ type SeatReservation struct {
 	// GroupID holds the value of the "group_id" field.
 	GroupID uuid.UUID `json:"group_id,omitempty"`
 	// Status holds the value of the "status" field.
-	Status seatreservation.Status `json:"status,omitempty"`
-	// StartTime holds the value of the "start_time" field.
-	StartTime time.Time `json:"start_time,omitempty"`
-	// EndTime holds the value of the "end_time" field.
-	EndTime      time.Time `json:"end_time,omitempty"`
-	selectValues sql.SelectValues
+	Status cinema.SeatReservationStatus `json:"status,omitempty"`
+	// RowNum holds the value of the "row_num" field.
+	RowNum uint32 `json:"row_num,omitempty"`
+	// ColumnNum holds the value of the "column_num" field.
+	ColumnNum uint32 `json:"column_num,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SeatReservationQuery when eager-loading is set.
+	Edges                       SeatReservationEdges `json:"edges"`
+	screening_seat_reservations *int64
+	selectValues                sql.SelectValues
+}
+
+// SeatReservationEdges holds the relations/edges for other nodes in the graph.
+type SeatReservationEdges struct {
+	// Screening holds the value of the screening edge.
+	Screening *Screening `json:"screening,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// ScreeningOrErr returns the Screening value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SeatReservationEdges) ScreeningOrErr() (*Screening, error) {
+	if e.Screening != nil {
+		return e.Screening, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: screening.Label}
+	}
+	return nil, &NotLoadedError{edge: "screening"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -40,14 +66,14 @@ func (*SeatReservation) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seatreservation.FieldID:
+		case seatreservation.FieldID, seatreservation.FieldStatus, seatreservation.FieldRowNum, seatreservation.FieldColumnNum:
 			values[i] = new(sql.NullInt64)
-		case seatreservation.FieldStatus:
-			values[i] = new(sql.NullString)
-		case seatreservation.FieldCreatedAt, seatreservation.FieldUpdatedAt, seatreservation.FieldReservedAt, seatreservation.FieldStartTime, seatreservation.FieldEndTime:
+		case seatreservation.FieldCreatedAt, seatreservation.FieldUpdatedAt, seatreservation.FieldReservedAt:
 			values[i] = new(sql.NullTime)
 		case seatreservation.FieldGroupID:
 			values[i] = new(uuid.UUID)
+		case seatreservation.ForeignKeys[0]: // screening_seat_reservations
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -94,22 +120,29 @@ func (sr *SeatReservation) assignValues(columns []string, values []any) error {
 				sr.GroupID = *value
 			}
 		case seatreservation.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				sr.Status = seatreservation.Status(value.String)
+				sr.Status = cinema.SeatReservationStatus(value.Int64)
 			}
-		case seatreservation.FieldStartTime:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field start_time", values[i])
+		case seatreservation.FieldRowNum:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field row_num", values[i])
 			} else if value.Valid {
-				sr.StartTime = value.Time
+				sr.RowNum = uint32(value.Int64)
 			}
-		case seatreservation.FieldEndTime:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field end_time", values[i])
+		case seatreservation.FieldColumnNum:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field column_num", values[i])
 			} else if value.Valid {
-				sr.EndTime = value.Time
+				sr.ColumnNum = uint32(value.Int64)
+			}
+		case seatreservation.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field screening_seat_reservations", value)
+			} else if value.Valid {
+				sr.screening_seat_reservations = new(int64)
+				*sr.screening_seat_reservations = int64(value.Int64)
 			}
 		default:
 			sr.selectValues.Set(columns[i], values[i])
@@ -122,6 +155,11 @@ func (sr *SeatReservation) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (sr *SeatReservation) Value(name string) (ent.Value, error) {
 	return sr.selectValues.Get(name)
+}
+
+// QueryScreening queries the "screening" edge of the SeatReservation entity.
+func (sr *SeatReservation) QueryScreening() *ScreeningQuery {
+	return NewSeatReservationClient(sr.config).QueryScreening(sr)
 }
 
 // Update returns a builder for updating this SeatReservation.
@@ -162,11 +200,11 @@ func (sr *SeatReservation) String() string {
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", sr.Status))
 	builder.WriteString(", ")
-	builder.WriteString("start_time=")
-	builder.WriteString(sr.StartTime.Format(time.ANSIC))
+	builder.WriteString("row_num=")
+	builder.WriteString(fmt.Sprintf("%v", sr.RowNum))
 	builder.WriteString(", ")
-	builder.WriteString("end_time=")
-	builder.WriteString(sr.EndTime.Format(time.ANSIC))
+	builder.WriteString("column_num=")
+	builder.WriteString(fmt.Sprintf("%v", sr.ColumnNum))
 	builder.WriteByte(')')
 	return builder.String()
 }

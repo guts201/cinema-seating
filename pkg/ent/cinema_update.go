@@ -3,8 +3,9 @@
 package ent
 
 import (
-	"cinema/pkg/ent/cinema"
+	entcinema "cinema/pkg/ent/cinema"
 	"cinema/pkg/ent/predicate"
+	"cinema/pkg/ent/screening"
 	"context"
 	"errors"
 	"fmt"
@@ -36,44 +37,44 @@ func (cu *CinemaUpdate) SetUpdatedAt(t time.Time) *CinemaUpdate {
 }
 
 // SetNumRow sets the "num_row" field.
-func (cu *CinemaUpdate) SetNumRow(i int64) *CinemaUpdate {
+func (cu *CinemaUpdate) SetNumRow(u uint32) *CinemaUpdate {
 	cu.mutation.ResetNumRow()
-	cu.mutation.SetNumRow(i)
+	cu.mutation.SetNumRow(u)
 	return cu
 }
 
 // SetNillableNumRow sets the "num_row" field if the given value is not nil.
-func (cu *CinemaUpdate) SetNillableNumRow(i *int64) *CinemaUpdate {
-	if i != nil {
-		cu.SetNumRow(*i)
+func (cu *CinemaUpdate) SetNillableNumRow(u *uint32) *CinemaUpdate {
+	if u != nil {
+		cu.SetNumRow(*u)
 	}
 	return cu
 }
 
-// AddNumRow adds i to the "num_row" field.
-func (cu *CinemaUpdate) AddNumRow(i int64) *CinemaUpdate {
-	cu.mutation.AddNumRow(i)
+// AddNumRow adds u to the "num_row" field.
+func (cu *CinemaUpdate) AddNumRow(u int32) *CinemaUpdate {
+	cu.mutation.AddNumRow(u)
 	return cu
 }
 
 // SetNumColumn sets the "num_column" field.
-func (cu *CinemaUpdate) SetNumColumn(i int64) *CinemaUpdate {
+func (cu *CinemaUpdate) SetNumColumn(u uint32) *CinemaUpdate {
 	cu.mutation.ResetNumColumn()
-	cu.mutation.SetNumColumn(i)
+	cu.mutation.SetNumColumn(u)
 	return cu
 }
 
 // SetNillableNumColumn sets the "num_column" field if the given value is not nil.
-func (cu *CinemaUpdate) SetNillableNumColumn(i *int64) *CinemaUpdate {
-	if i != nil {
-		cu.SetNumColumn(*i)
+func (cu *CinemaUpdate) SetNillableNumColumn(u *uint32) *CinemaUpdate {
+	if u != nil {
+		cu.SetNumColumn(*u)
 	}
 	return cu
 }
 
-// AddNumColumn adds i to the "num_column" field.
-func (cu *CinemaUpdate) AddNumColumn(i int64) *CinemaUpdate {
-	cu.mutation.AddNumColumn(i)
+// AddNumColumn adds u to the "num_column" field.
+func (cu *CinemaUpdate) AddNumColumn(u int32) *CinemaUpdate {
+	cu.mutation.AddNumColumn(u)
 	return cu
 }
 
@@ -91,23 +92,66 @@ func (cu *CinemaUpdate) SetNillableName(s *string) *CinemaUpdate {
 	return cu
 }
 
-// SetAddress sets the "address" field.
-func (cu *CinemaUpdate) SetAddress(s string) *CinemaUpdate {
-	cu.mutation.SetAddress(s)
+// SetMinDistance sets the "min_distance" field.
+func (cu *CinemaUpdate) SetMinDistance(u uint32) *CinemaUpdate {
+	cu.mutation.ResetMinDistance()
+	cu.mutation.SetMinDistance(u)
 	return cu
 }
 
-// SetNillableAddress sets the "address" field if the given value is not nil.
-func (cu *CinemaUpdate) SetNillableAddress(s *string) *CinemaUpdate {
-	if s != nil {
-		cu.SetAddress(*s)
+// SetNillableMinDistance sets the "min_distance" field if the given value is not nil.
+func (cu *CinemaUpdate) SetNillableMinDistance(u *uint32) *CinemaUpdate {
+	if u != nil {
+		cu.SetMinDistance(*u)
 	}
 	return cu
+}
+
+// AddMinDistance adds u to the "min_distance" field.
+func (cu *CinemaUpdate) AddMinDistance(u int32) *CinemaUpdate {
+	cu.mutation.AddMinDistance(u)
+	return cu
+}
+
+// AddScreeningIDs adds the "screenings" edge to the Screening entity by IDs.
+func (cu *CinemaUpdate) AddScreeningIDs(ids ...int64) *CinemaUpdate {
+	cu.mutation.AddScreeningIDs(ids...)
+	return cu
+}
+
+// AddScreenings adds the "screenings" edges to the Screening entity.
+func (cu *CinemaUpdate) AddScreenings(s ...*Screening) *CinemaUpdate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cu.AddScreeningIDs(ids...)
 }
 
 // Mutation returns the CinemaMutation object of the builder.
 func (cu *CinemaUpdate) Mutation() *CinemaMutation {
 	return cu.mutation
+}
+
+// ClearScreenings clears all "screenings" edges to the Screening entity.
+func (cu *CinemaUpdate) ClearScreenings() *CinemaUpdate {
+	cu.mutation.ClearScreenings()
+	return cu
+}
+
+// RemoveScreeningIDs removes the "screenings" edge to Screening entities by IDs.
+func (cu *CinemaUpdate) RemoveScreeningIDs(ids ...int64) *CinemaUpdate {
+	cu.mutation.RemoveScreeningIDs(ids...)
+	return cu
+}
+
+// RemoveScreenings removes "screenings" edges to Screening entities.
+func (cu *CinemaUpdate) RemoveScreenings(s ...*Screening) *CinemaUpdate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cu.RemoveScreeningIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -141,7 +185,7 @@ func (cu *CinemaUpdate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (cu *CinemaUpdate) defaults() {
 	if _, ok := cu.mutation.UpdatedAt(); !ok {
-		v := cinema.UpdateDefaultUpdatedAt()
+		v := entcinema.UpdateDefaultUpdatedAt()
 		cu.mutation.SetUpdatedAt(v)
 	}
 }
@@ -149,23 +193,23 @@ func (cu *CinemaUpdate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (cu *CinemaUpdate) check() error {
 	if v, ok := cu.mutation.NumRow(); ok {
-		if err := cinema.NumRowValidator(v); err != nil {
+		if err := entcinema.NumRowValidator(v); err != nil {
 			return &ValidationError{Name: "num_row", err: fmt.Errorf(`ent: validator failed for field "Cinema.num_row": %w`, err)}
 		}
 	}
 	if v, ok := cu.mutation.NumColumn(); ok {
-		if err := cinema.NumColumnValidator(v); err != nil {
+		if err := entcinema.NumColumnValidator(v); err != nil {
 			return &ValidationError{Name: "num_column", err: fmt.Errorf(`ent: validator failed for field "Cinema.num_column": %w`, err)}
 		}
 	}
 	if v, ok := cu.mutation.Name(); ok {
-		if err := cinema.NameValidator(v); err != nil {
+		if err := entcinema.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Cinema.name": %w`, err)}
 		}
 	}
-	if v, ok := cu.mutation.Address(); ok {
-		if err := cinema.AddressValidator(v); err != nil {
-			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Cinema.address": %w`, err)}
+	if v, ok := cu.mutation.MinDistance(); ok {
+		if err := entcinema.MinDistanceValidator(v); err != nil {
+			return &ValidationError{Name: "min_distance", err: fmt.Errorf(`ent: validator failed for field "Cinema.min_distance": %w`, err)}
 		}
 	}
 	return nil
@@ -181,7 +225,7 @@ func (cu *CinemaUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := cu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(cinema.Table, cinema.Columns, sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(entcinema.Table, entcinema.Columns, sqlgraph.NewFieldSpec(entcinema.FieldID, field.TypeInt64))
 	if ps := cu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -190,30 +234,78 @@ func (cu *CinemaUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := cu.mutation.UpdatedAt(); ok {
-		_spec.SetField(cinema.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(entcinema.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := cu.mutation.NumRow(); ok {
-		_spec.SetField(cinema.FieldNumRow, field.TypeInt64, value)
+		_spec.SetField(entcinema.FieldNumRow, field.TypeUint32, value)
 	}
 	if value, ok := cu.mutation.AddedNumRow(); ok {
-		_spec.AddField(cinema.FieldNumRow, field.TypeInt64, value)
+		_spec.AddField(entcinema.FieldNumRow, field.TypeUint32, value)
 	}
 	if value, ok := cu.mutation.NumColumn(); ok {
-		_spec.SetField(cinema.FieldNumColumn, field.TypeInt64, value)
+		_spec.SetField(entcinema.FieldNumColumn, field.TypeUint32, value)
 	}
 	if value, ok := cu.mutation.AddedNumColumn(); ok {
-		_spec.AddField(cinema.FieldNumColumn, field.TypeInt64, value)
+		_spec.AddField(entcinema.FieldNumColumn, field.TypeUint32, value)
 	}
 	if value, ok := cu.mutation.Name(); ok {
-		_spec.SetField(cinema.FieldName, field.TypeString, value)
+		_spec.SetField(entcinema.FieldName, field.TypeString, value)
 	}
-	if value, ok := cu.mutation.Address(); ok {
-		_spec.SetField(cinema.FieldAddress, field.TypeString, value)
+	if value, ok := cu.mutation.MinDistance(); ok {
+		_spec.SetField(entcinema.FieldMinDistance, field.TypeUint32, value)
+	}
+	if value, ok := cu.mutation.AddedMinDistance(); ok {
+		_spec.AddField(entcinema.FieldMinDistance, field.TypeUint32, value)
+	}
+	if cu.mutation.ScreeningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entcinema.ScreeningsTable,
+			Columns: []string{entcinema.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedScreeningsIDs(); len(nodes) > 0 && !cu.mutation.ScreeningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entcinema.ScreeningsTable,
+			Columns: []string{entcinema.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.ScreeningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entcinema.ScreeningsTable,
+			Columns: []string{entcinema.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(cu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{cinema.Label}
+			err = &NotFoundError{entcinema.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -239,44 +331,44 @@ func (cuo *CinemaUpdateOne) SetUpdatedAt(t time.Time) *CinemaUpdateOne {
 }
 
 // SetNumRow sets the "num_row" field.
-func (cuo *CinemaUpdateOne) SetNumRow(i int64) *CinemaUpdateOne {
+func (cuo *CinemaUpdateOne) SetNumRow(u uint32) *CinemaUpdateOne {
 	cuo.mutation.ResetNumRow()
-	cuo.mutation.SetNumRow(i)
+	cuo.mutation.SetNumRow(u)
 	return cuo
 }
 
 // SetNillableNumRow sets the "num_row" field if the given value is not nil.
-func (cuo *CinemaUpdateOne) SetNillableNumRow(i *int64) *CinemaUpdateOne {
-	if i != nil {
-		cuo.SetNumRow(*i)
+func (cuo *CinemaUpdateOne) SetNillableNumRow(u *uint32) *CinemaUpdateOne {
+	if u != nil {
+		cuo.SetNumRow(*u)
 	}
 	return cuo
 }
 
-// AddNumRow adds i to the "num_row" field.
-func (cuo *CinemaUpdateOne) AddNumRow(i int64) *CinemaUpdateOne {
-	cuo.mutation.AddNumRow(i)
+// AddNumRow adds u to the "num_row" field.
+func (cuo *CinemaUpdateOne) AddNumRow(u int32) *CinemaUpdateOne {
+	cuo.mutation.AddNumRow(u)
 	return cuo
 }
 
 // SetNumColumn sets the "num_column" field.
-func (cuo *CinemaUpdateOne) SetNumColumn(i int64) *CinemaUpdateOne {
+func (cuo *CinemaUpdateOne) SetNumColumn(u uint32) *CinemaUpdateOne {
 	cuo.mutation.ResetNumColumn()
-	cuo.mutation.SetNumColumn(i)
+	cuo.mutation.SetNumColumn(u)
 	return cuo
 }
 
 // SetNillableNumColumn sets the "num_column" field if the given value is not nil.
-func (cuo *CinemaUpdateOne) SetNillableNumColumn(i *int64) *CinemaUpdateOne {
-	if i != nil {
-		cuo.SetNumColumn(*i)
+func (cuo *CinemaUpdateOne) SetNillableNumColumn(u *uint32) *CinemaUpdateOne {
+	if u != nil {
+		cuo.SetNumColumn(*u)
 	}
 	return cuo
 }
 
-// AddNumColumn adds i to the "num_column" field.
-func (cuo *CinemaUpdateOne) AddNumColumn(i int64) *CinemaUpdateOne {
-	cuo.mutation.AddNumColumn(i)
+// AddNumColumn adds u to the "num_column" field.
+func (cuo *CinemaUpdateOne) AddNumColumn(u int32) *CinemaUpdateOne {
+	cuo.mutation.AddNumColumn(u)
 	return cuo
 }
 
@@ -294,23 +386,66 @@ func (cuo *CinemaUpdateOne) SetNillableName(s *string) *CinemaUpdateOne {
 	return cuo
 }
 
-// SetAddress sets the "address" field.
-func (cuo *CinemaUpdateOne) SetAddress(s string) *CinemaUpdateOne {
-	cuo.mutation.SetAddress(s)
+// SetMinDistance sets the "min_distance" field.
+func (cuo *CinemaUpdateOne) SetMinDistance(u uint32) *CinemaUpdateOne {
+	cuo.mutation.ResetMinDistance()
+	cuo.mutation.SetMinDistance(u)
 	return cuo
 }
 
-// SetNillableAddress sets the "address" field if the given value is not nil.
-func (cuo *CinemaUpdateOne) SetNillableAddress(s *string) *CinemaUpdateOne {
-	if s != nil {
-		cuo.SetAddress(*s)
+// SetNillableMinDistance sets the "min_distance" field if the given value is not nil.
+func (cuo *CinemaUpdateOne) SetNillableMinDistance(u *uint32) *CinemaUpdateOne {
+	if u != nil {
+		cuo.SetMinDistance(*u)
 	}
 	return cuo
+}
+
+// AddMinDistance adds u to the "min_distance" field.
+func (cuo *CinemaUpdateOne) AddMinDistance(u int32) *CinemaUpdateOne {
+	cuo.mutation.AddMinDistance(u)
+	return cuo
+}
+
+// AddScreeningIDs adds the "screenings" edge to the Screening entity by IDs.
+func (cuo *CinemaUpdateOne) AddScreeningIDs(ids ...int64) *CinemaUpdateOne {
+	cuo.mutation.AddScreeningIDs(ids...)
+	return cuo
+}
+
+// AddScreenings adds the "screenings" edges to the Screening entity.
+func (cuo *CinemaUpdateOne) AddScreenings(s ...*Screening) *CinemaUpdateOne {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cuo.AddScreeningIDs(ids...)
 }
 
 // Mutation returns the CinemaMutation object of the builder.
 func (cuo *CinemaUpdateOne) Mutation() *CinemaMutation {
 	return cuo.mutation
+}
+
+// ClearScreenings clears all "screenings" edges to the Screening entity.
+func (cuo *CinemaUpdateOne) ClearScreenings() *CinemaUpdateOne {
+	cuo.mutation.ClearScreenings()
+	return cuo
+}
+
+// RemoveScreeningIDs removes the "screenings" edge to Screening entities by IDs.
+func (cuo *CinemaUpdateOne) RemoveScreeningIDs(ids ...int64) *CinemaUpdateOne {
+	cuo.mutation.RemoveScreeningIDs(ids...)
+	return cuo
+}
+
+// RemoveScreenings removes "screenings" edges to Screening entities.
+func (cuo *CinemaUpdateOne) RemoveScreenings(s ...*Screening) *CinemaUpdateOne {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cuo.RemoveScreeningIDs(ids...)
 }
 
 // Where appends a list predicates to the CinemaUpdate builder.
@@ -357,7 +492,7 @@ func (cuo *CinemaUpdateOne) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (cuo *CinemaUpdateOne) defaults() {
 	if _, ok := cuo.mutation.UpdatedAt(); !ok {
-		v := cinema.UpdateDefaultUpdatedAt()
+		v := entcinema.UpdateDefaultUpdatedAt()
 		cuo.mutation.SetUpdatedAt(v)
 	}
 }
@@ -365,23 +500,23 @@ func (cuo *CinemaUpdateOne) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (cuo *CinemaUpdateOne) check() error {
 	if v, ok := cuo.mutation.NumRow(); ok {
-		if err := cinema.NumRowValidator(v); err != nil {
+		if err := entcinema.NumRowValidator(v); err != nil {
 			return &ValidationError{Name: "num_row", err: fmt.Errorf(`ent: validator failed for field "Cinema.num_row": %w`, err)}
 		}
 	}
 	if v, ok := cuo.mutation.NumColumn(); ok {
-		if err := cinema.NumColumnValidator(v); err != nil {
+		if err := entcinema.NumColumnValidator(v); err != nil {
 			return &ValidationError{Name: "num_column", err: fmt.Errorf(`ent: validator failed for field "Cinema.num_column": %w`, err)}
 		}
 	}
 	if v, ok := cuo.mutation.Name(); ok {
-		if err := cinema.NameValidator(v); err != nil {
+		if err := entcinema.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Cinema.name": %w`, err)}
 		}
 	}
-	if v, ok := cuo.mutation.Address(); ok {
-		if err := cinema.AddressValidator(v); err != nil {
-			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Cinema.address": %w`, err)}
+	if v, ok := cuo.mutation.MinDistance(); ok {
+		if err := entcinema.MinDistanceValidator(v); err != nil {
+			return &ValidationError{Name: "min_distance", err: fmt.Errorf(`ent: validator failed for field "Cinema.min_distance": %w`, err)}
 		}
 	}
 	return nil
@@ -397,7 +532,7 @@ func (cuo *CinemaUpdateOne) sqlSave(ctx context.Context) (_node *Cinema, err err
 	if err := cuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(cinema.Table, cinema.Columns, sqlgraph.NewFieldSpec(cinema.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(entcinema.Table, entcinema.Columns, sqlgraph.NewFieldSpec(entcinema.FieldID, field.TypeInt64))
 	id, ok := cuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Cinema.id" for update`)}
@@ -405,12 +540,12 @@ func (cuo *CinemaUpdateOne) sqlSave(ctx context.Context) (_node *Cinema, err err
 	_spec.Node.ID.Value = id
 	if fields := cuo.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, cinema.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, entcinema.FieldID)
 		for _, f := range fields {
-			if !cinema.ValidColumn(f) {
+			if !entcinema.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 			}
-			if f != cinema.FieldID {
+			if f != entcinema.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, f)
 			}
 		}
@@ -423,25 +558,73 @@ func (cuo *CinemaUpdateOne) sqlSave(ctx context.Context) (_node *Cinema, err err
 		}
 	}
 	if value, ok := cuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(cinema.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(entcinema.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := cuo.mutation.NumRow(); ok {
-		_spec.SetField(cinema.FieldNumRow, field.TypeInt64, value)
+		_spec.SetField(entcinema.FieldNumRow, field.TypeUint32, value)
 	}
 	if value, ok := cuo.mutation.AddedNumRow(); ok {
-		_spec.AddField(cinema.FieldNumRow, field.TypeInt64, value)
+		_spec.AddField(entcinema.FieldNumRow, field.TypeUint32, value)
 	}
 	if value, ok := cuo.mutation.NumColumn(); ok {
-		_spec.SetField(cinema.FieldNumColumn, field.TypeInt64, value)
+		_spec.SetField(entcinema.FieldNumColumn, field.TypeUint32, value)
 	}
 	if value, ok := cuo.mutation.AddedNumColumn(); ok {
-		_spec.AddField(cinema.FieldNumColumn, field.TypeInt64, value)
+		_spec.AddField(entcinema.FieldNumColumn, field.TypeUint32, value)
 	}
 	if value, ok := cuo.mutation.Name(); ok {
-		_spec.SetField(cinema.FieldName, field.TypeString, value)
+		_spec.SetField(entcinema.FieldName, field.TypeString, value)
 	}
-	if value, ok := cuo.mutation.Address(); ok {
-		_spec.SetField(cinema.FieldAddress, field.TypeString, value)
+	if value, ok := cuo.mutation.MinDistance(); ok {
+		_spec.SetField(entcinema.FieldMinDistance, field.TypeUint32, value)
+	}
+	if value, ok := cuo.mutation.AddedMinDistance(); ok {
+		_spec.AddField(entcinema.FieldMinDistance, field.TypeUint32, value)
+	}
+	if cuo.mutation.ScreeningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entcinema.ScreeningsTable,
+			Columns: []string{entcinema.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedScreeningsIDs(); len(nodes) > 0 && !cuo.mutation.ScreeningsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entcinema.ScreeningsTable,
+			Columns: []string{entcinema.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.ScreeningsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entcinema.ScreeningsTable,
+			Columns: []string{entcinema.ScreeningsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(screening.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(cuo.modifiers...)
 	_node = &Cinema{config: cuo.config}
@@ -449,7 +632,7 @@ func (cuo *CinemaUpdateOne) sqlSave(ctx context.Context) (_node *Cinema, err err
 	_spec.ScanValues = _node.scanValues
 	if err = sqlgraph.UpdateNode(ctx, cuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{cinema.Label}
+			err = &NotFoundError{entcinema.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
